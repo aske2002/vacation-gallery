@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  backend:
+    image: backend:amd64
+    ports:
+      - "1798:1798"
+
+  frontend:
+    image: frontend:amd64
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend

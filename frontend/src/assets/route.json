@@ -1,0 +1,1527 @@
+[
+    {
+        "position": [
+            1.25,
+            1
+        ],
+        "name": "Olympic National Park",
+        "notes": "Lidt anderledes end de andre stop på ruten, temperet regnskov osv.",
+        "visit_duration": 172800000,
+        "coordinates": {
+            "lat": 48.11449910692568,
+            "lon": -123.42201173940296
+        },
+        "address": "Port Angeles,WA,US",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/node/6499028889",
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Riviera Inn Motel",
+                    "coordinates": {
+                        "lat": 48.116439,
+                        "lon": -123.42371899999999
+                    },
+                    "address": "535 E Front St,Port Angeles,,US",
+                    "url": "/book/expedia?id=697256%3A18526725&lang=en-US&alt=hcom*697256%3A18526725'bookingdotcom*1089834*%2Fhotel%2Fus%2Friviera-inn.html"
+                },
+                {
+                    "name": "Royal Victorian",
+                    "coordinates": {
+                        "lat": 48.115623,
+                        "lon": -123.425238
+                    },
+                    "address": "521 E 1st Street,Port Angeles,,US",
+                    "url": "/book/expedia?id=446593%3A7108922&lang=en-US&alt=hcom*446593%3A7108922'bookingdotcom*510129*%2Fhotel%2Fus%2Froyal-victorian-motel.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 1.25,
+                "route": [
+                    {
+                        "duration": 118.39500000000044,
+                        "distance": 1409,
+                        "coordinates": {
+                            "lat": 48.121836,
+                            "lon": -123.430733
+                        },
+                        "polyline": "6w}bxzAxsrljFvMbJbH`c@dD`NhSlPrLzI`GaSlE}Rnc@cxAzs@lp@nw@dp@~l@_qB`_@smAxIuYpL}_@vc@swAjk@yjBnl@qoBvM_c@",
+                        "tzoffset": -420,
+                        "tzname": "America/Los_Angeles",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            },
+            {
+                "position": 1,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 48.11449910692568,
+                            "lon": -123.42201173940296
+                        },
+                        "polyline": "6",
+                        "tzoffset": -420,
+                        "tzname": "America/Los_Angeles",
+                        "tzabbr": "PDT"
+                    },
+                    {
+                        "mode": 0,
+                        "duration": 5284.074,
+                        "distance": 116473,
+                        "coordinates": {
+                            "lat": 47.622505,
+                            "lon": -122.509405
+                        },
+                        "polyline": "6qjtwzArzaljFrpAigEnq@cxB|gCcmI|i@sjB|s@__CzgAkrDbMgi@`VusBtFanAxRwsC~Hg{@nFi}@n^cmFzF}kAtp@gxKlH{xBeBkgBuRoaEa@ox@AubHSwaA}Dsv@qWkiAcbBuvE_h@axAcoA{cLpyIq{AmhDksTh~GmjKnlCuzJnoDii`@tUiwe@ruM}l`C~dF{ao@dmN_h~A~{Ewlv@|Tat|@ftDmvg@n|Hsp[xeIumPjdGkbDjkSoi`@d`RmuF`|LqqUzjMmrRkhCejRmik@ysa@ivG_bXpLunrAn~NaynApyCiqKbnKg}MnzNilGpjNejC|{Rp_D|_EnnF`_HteYd{KpkMdzCnl@thEujH||k@_yGznDtdBx|Xd}BvdFyaIdtD{rm@zz@opEh|[un|@~rNugr@|jj@uncAvsAeqFzhGo|o@l~BqyJhvSwyYjsEm}^r}FmxSwfCmwf@lpEm`Yf~@oyVfr[o`r@h`Yf{J~aJlgIp~Svn]ntO`jLlkf@~aKpnq@ww@tvJ~cEbrC~|H~sDgtLpjR{~VbvYobDvrLqWxwJulXrbY}xj@`pAgiRmtAo_IwsKugZn`F{zSzja@ktOdma@wic@r{Y_oRtyZuqCfjJolJfeTqWhvIihBlzBw`FpHyeA",
+                        "name": "",
+                        "url": "",
+                        "auto": 11,
+                        "pin": 95,
+                        "visit": 0,
+                        "tzoffset": -420,
+                        "tzname": "America/Los_Angeles",
+                        "tzabbr": "PDT"
+                    },
+                    {
+                        "mode": 6,
+                        "duration": 2575.785,
+                        "distance": 13596,
+                        "coordinates": {
+                            "lat": 47.602895,
+                            "lon": -122.339841
+                        },
+                        "polyline": "6qusyyAxdkthFnmBg_Sz_EuoF`_Oy`I|fB_~I~{Gkr`FfTs_x@",
+                        "name": "",
+                        "url": "",
+                        "auto": 11,
+                        "pin": 95,
+                        "visit": 0,
+                        "tzoffset": -420,
+                        "tzname": "America/Los_Angeles",
+                        "tzabbr": "PDT",
+                        "tolls": true
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Los_Angeles",
+        "tzabbr": "PDT",
+        "id": "6835a9f0fa06bbcf43beb77d",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835a9f0fa06bbcf43beb77d"
+    },
+    {
+        "position": [
+            2,
+            1.8125
+        ],
+        "name": "Victoria",
+        "notes": "En af hendes yndlingsbyer i canada, meget britisk inspireret - træbygninger",
+        "visit_duration": 172800000,
+        "coordinates": {
+            "lat": 48.450119,
+            "lon": -123.368158
+        },
+        "address": "3233 Maple Street,Saanich,BC,CA",
+        "ack_warnings": false,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Helms Inn",
+                    "coordinates": {
+                        "lat": 48.418669,
+                        "lon": -123.365629
+                    },
+                    "address": "600 Douglas St,Victoria,,CA",
+                    "url": "/book/expedia?id=238768%3A1402733&lang=en-US&alt=hcom*238768%3A1402733'bookingdotcom*42621*%2Fhotel%2Fca%2Fhelm-s-inn.html"
+                },
+                {
+                    "name": "Strathcona Hotel",
+                    "coordinates": {
+                        "lat": 48.423508,
+                        "lon": -123.36564399999999
+                    },
+                    "address": "919 Douglas Street,Victoria,,CA",
+                    "url": "/book/expedia?id=494682%3A14931&lang=en-US&alt=hcom*494682%3A14931'bookingdotcom*176972*%2Fhotel%2Fca%2Fstrathcona.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 2,
+                "route": [
+                    {
+                        "duration": 13093.378999999999,
+                        "distance": 285898,
+                        "coordinates": {
+                            "lat": 48.9717363,
+                            "lon": -125.60718943037946
+                        },
+                        "polyline": "6qh_l|AdbmqnF}`Owye@keVzd@gm`@ytd@miKnnA{{Pceu@ceTsqAsxHekV}qMoghAwo_@_sk@epVhYu~JmuU}jZg}J{bRb{JcnJmnHklQahr@_fKruBk`De`Tczu@t}De_Uieg@ybNsnFe{Vb~Lq_Tghm@ggYm{UivEhpDcbg@gd[ivM|_[ox_@lj@s_V{rKa{Pmv_@wjKcuFerC__YuMs{v@iuK}}RjyRsznByrBuqThnBkv{@zwN_tZdxC}`ZytB_oc@jwAwzx@evGomRjuEgpeAvlJ{fu@cgIcaP_zGs|o@tsFsme@g{]opqAah@ucc@xpD}ra@vmm@ewkAftBcxp@zeSkw|@cfOs`p@jyAyfz@{eC_np@nfC}rb@boXc|N`zIuqg@udIgip@uxPfjSsjk@vrGycPgf[lwEs{}@ax@ifb@ppEsfb@umOiss@kuY}eh@efHe`~@pwJ}`r@xzD_eu@wcCe~N{`b@mcPgoCea\\vqLadp@lgKucgBzfKwm]rxMg`~AyxFwhf@`cCoyJfeb@q`PltSwnZdsJyw\\~yC{kd@lqSuq{@zgFwv{@opDeam@foPkw|Ad~MwwXffs@}rUpxXmnc@tcYwjdAdd`@gxOdfGgyMxpXfpAjuVccd@faB}yc@ttLmkJzeF}qXxrf@emk@da\\e~Qdfm@cqKbj\\vYf|TauV|ta@ctHjyVado@h{NosKrnPmx`@h{]}`VtoYoxc@hcX}yGpsh@_lo@tnQssF`_Ts_e@zrd@udm@`yKqpDdly@rzf@daQyrGfitA_iBnma@{`a@fc]qkB~nSuuj@~rHymEnsg@sq{@faPcfNj`E}rb@dySqqMdxw@sxlAluMiqKn{j@y}BtzNqwKrcu@wpWrgiAsxWxaKj|\\`Qv`_@hcYdmXtmOmvLtrn@etQx}X|fCtfb@wuC`aV{`K`b^dfBfaPuoh@lh@g__@kmG{xc@wpKydSxtCisw@_jDmzeAhsOujjAtqIo`U",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT",
+                        "rough": true
+                    }
+                ]
+            },
+            {
+                "position": 1.8125,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 48.450119,
+                            "lon": -123.368158
+                        },
+                        "polyline": "",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    },
+                    {
+                        "mode": 0,
+                        "duration": 470.46899999999994,
+                        "distance": 4694,
+                        "coordinates": {
+                            "lat": 48.421619,
+                            "lon": -123.372083
+                        },
+                        "polyline": "6_hdl{AlzxhjFiC\\}@|DbAxDaBlDsCfB_Cl@ir@tLjD~IzIhYlDdK`JxT~FtO|]`cAhu@~uBv^cUp]{RnZ}O~\\wQdGyChQqJlRoJtTcL|XkOrh@uVrp@k[hq@s^lc@gU~Q{Idn@oXfKyElSwIzT}K~\\aOrd@kT~TiKrPmH~NgGpm@uYjPmGb^uO~d@oTxe@uTte@aTjSkJbY_Nza@eRpGmCrEeApCSfg@s@ri@i@bs@aBxk@]`LMfn@_A~s@_A~r@gAh^lAfFr@bj@rJn_@lG`ZhE|Db@`l@lH~FbAfSlEhUfE`JtAze@nIhe@bHzPjDjo@~NvH`BnLzAf_@fDv\\bDxR`B|Ql@qBnSuE~a@yJ`~@s@pK{Bxp@aF``By@pOs@zHcArHcLvr@yGv\\yBvMmG~`@yEpY_BfIuArEiCyC_J{HhB}IbCcH`@qB|BoDtMe_@_AkC~BoLr@sRo@qDsL_J",
+                        "name": "",
+                        "url": "",
+                        "auto": 11,
+                        "pin": 95,
+                        "visit": 0,
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    },
+                    {
+                        "mode": 6,
+                        "duration": 5913.942,
+                        "distance": 37425,
+                        "coordinates": {
+                            "lat": 48.121836,
+                            "lon": -123.430733
+                        },
+                        "polyline": "6enlj{Adb`ijFcEaDiIAwZvLe|Bf}CaSlf@sIxm@cCtpA{FvlKcBdoB~Az_BzH`oArm@drB|z@vbAvwJ~dH|kK~wG`kJxvC|j]drDnecCckDrtxI_|]xwItyAraI|kHbbEnlNruCxjc@|aBvvGzeC~lEjvDltD",
+                        "name": "",
+                        "url": "",
+                        "auto": 11,
+                        "pin": 95,
+                        "visit": 0,
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "arrival": "",
+        "id": "6835aa516c6cbb1083d2096c",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835aa516c6cbb1083d2096c"
+    },
+    {
+        "position": [
+            4.75
+        ],
+        "name": "Tofino",
+        "notes": "Tofino og Ucluelet  skulle være det fedeste - surfers paradise kaldes Tofino.\n\nHvis man ikke kan finde overnatninger kan man bo i Ucluelet,der er ikke meget i Tofino.\n\nVandre ruten ligger lige midt imellem de to byer.",
+        "visit_duration": 3600000,
+        "coordinates": {
+            "lat": 49.15296965617043,
+            "lon": -125.90469360351562
+        },
+        "address": "Tofino,Britisk Columbia,CA",
+        "ack_warnings": false,
+        "lodging": {},
+        "skip": false,
+        "expander": [
+            {
+                "position": 4.75,
+                "route": [
+                    {
+                        "duration": 2135.666,
+                        "distance": 36049,
+                        "coordinates": {
+                            "lat": 48.9717363,
+                            "lon": -125.60718943037946
+                        },
+                        "polyline": "6qh_l|AdbmqnFzj@wcApe@i^|H_x@wg@o{Bgi@yrAi\\{bCqU{~@qVgSq{AoNmq@gwAq]ekC`mA}uDy`@wTw~Fu`Ey}@aRs_JzXu{FPobBvHk`@`^ux@|iBwqDv|G_rD~|HgiF|pKsaChhEgbAfzAw`A`yCmjB|wDipAvsCce@px@s|BdeFaoB~eFkiCjcFajGt`LmfE~tIkwDp`HgcIdaQgaExbJ{xCr|FyoChaGovCpqFa_@boBtBlpQ^huMiJzyAcWfmAgf@~rAonBxaDy_Ll_Vqq@tsAwsFbyI}qC|nFsiFzwJi]faAqPvhAaNrrGwItuB}c@thD_Ptl@ccF`xMyt@lgDihCxmIgUb`C_c@zeC{G|sJ`DpvAiKfhBkEfkGlWh|FpRn{CiNzuAot@vgAskGrpI{aAzg@mmBt@a|@|c@oo@lhBRbaDyGpgC|O~pDfR~~AaB~wAkMfk@ytAtdD_eCvjCge@xfB}QvaEseA|~Dwe@lxCa`@reHs^~tBsLpmB`C|}@rVveAwEvbB}oEh{KkP|v@eAz`Afc@ppB~]r{BnKxzBihAx~DyVhmBeoAdjEgt@viBgZdmAsq@dxA{xB`xCaPpgAdBtrAyIbx@yj@lzAyg@zd@a}AmN{j@lWgyA`{AocCr_BegCnsC}k@`_CuZtbDkq@nfDkTvk@maAniA}oAzgB_eAn]c~E~gGil@zuAwyBvvAgsCvgDieEtaEqvA`TcwBjm@eaA~m@qt@mIcyD{_Fy|Bc}AawBw@izCce@clBbV{w@r@ohA|p@gcDz_@gfAzi@e~@pkA{d@hsCuStv@}fBjnEic@dqBqUjzCu[dJ",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT",
+                        "rough": true
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "id": "6835abeefa06bbcf43beb951",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835abeefa06bbcf43beb951"
+    },
+    {
+        "position": [
+            4.9375,
+            4.5625,
+            4.28125
+        ],
+        "name": "Wya Point Resort Campground",
+        "notes": "",
+        "visit_duration": 259200000,
+        "coordinates": {
+            "lat": 48.9717363,
+            "lon": -125.60718943037946
+        },
+        "address": "Willowbrae Trail,Area C (Long Beach),BC,CA",
+        "ack_warnings": false,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "West Coast Motel",
+                    "coordinates": {
+                        "lat": 48.944607999999995,
+                        "lon": -125.55200199999999
+                    },
+                    "address": "279 Hemlock Street,Ucluelet,,CA",
+                    "url": "/book/expedia?id=405983%3A4952110&lang=en-US&alt=hcom*405983%3A4952110'bookingdotcom*308585*%2Fhotel%2Fca%2Fwest-coast-motel.html"
+                },
+                {
+                    "name": "Pacific Rim Motel",
+                    "coordinates": {
+                        "lat": 48.943036,
+                        "lon": -125.549416
+                    },
+                    "address": "1755 Peninsula Road,Ucluelet,,CA",
+                    "url": "/book/expedia?id=446462%3A6640159&lang=en-US&alt=hcom*446462%3A6640159'bookingdotcom*1331108*%2Fhotel%2Fca%2Fpacific-rim-motel-ucluelet.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 4.9375,
+                "route": [
+                    {
+                        "duration": 8417.203000000001,
+                        "distance": 175359,
+                        "coordinates": {
+                            "lat": 49.193506,
+                            "lon": -123.955402
+                        },
+                        "polyline": "6capy|ArkslkFr|BcSr]lsZ}_Wbwt@e|Inqp@opQzhTwia@jhWexD~rGg|Gjpb@mkAdgX_lIjq]wfCbza@n^ve^frChjOgoEld]sm@fe_@akRdtu@aaCrna@cnJtf`@i}Thi\\myLlhIstTxhF}xAfpUloEn|ZioNxpaBy_K~g\\osF|hm@axBfhq@ydMfzp@|oApzc@|rCs_ArbUfzNrwI~UvcCd~NweDzyYaTbjZqwJ|`r@`oAtdb@bvEnzZbiH``RfkPzdUvuHj`W|vE|q[qpErfb@`x@hfb@mwEr{}@f`CrtLpbLrpMfpU~TjyTwhHtxPgjStdIfip@azItqg@coXb|Nve@|aZgmD~oGl`C|`n@coBfnN`Uxzl@fkOljp@gvGjlc@snJ~iXgtBbxp@gcFblGa|Opnb@aeHxvDkfLtbZiBzsXomD`~G`h@tcc@ttOphi@|n@rbNruKhcXusFrme@~yGr|o@bgIbaPkp@j_Qk{Hnfc@sa@pc_@wrDtke@dvGnmRxi@xd^ebC|tYxtB~nc@exC|`Z{wN~sZinBjv{@xrBtqTkyRrznBhuK|}RjkArdTu|@~ua@drC~~XvjKbuF`{Plv_@r_VzrKnx_@mj@hvM}_[hyNrqFxgWrqShvEipDrxKhhOrmLbrExnKthTvoGp~Wd{Vc~LxbNrnFjiObrWxtDdrN~bSnqAb_EmmE~u[waAj`Dd`T~eKsuBnwCpeRbjGrnGvhDzqVbnJlnHzbRc{JhaLn_JrhMv\\qBxfLfbKrmHniRw{AfgJpxOvyJv|DlsLb~Vb}AnfUjuHp~_@l}@l`QrxHdkVbeTrqAftKziYrfDfzZ`_T`yBx{Wrh_@daVgbAh}Qt|`@k{A`|C",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT",
+                        "rough": true
+                    }
+                ]
+            },
+            {
+                "position": 4.5625,
+                "route": [
+                    {
+                        "duration": 2132.578,
+                        "distance": 36049,
+                        "coordinates": {
+                            "lat": 49.15296965617043,
+                            "lon": -125.90469360351562
+                        },
+                        "polyline": "6sdaw|A~nrcoFt[eJpUkzChc@eqB|fBknEtSuv@zd@isCd~@qkAffA{i@fcD{_@nhA}p@zw@s@blBcVhzCbe@`wBv@x|Bb}AbyDz_Fpt@lIdaA_n@bwBkm@pvAaTheEuaEfsCwgDvyBwvAhl@{uAb~E_hG~dAo]|oA{gBlaAoiAjTwk@jq@ofDtZubD|k@a_CdgCosCncCs_BfyAa{Azj@mW`}AlNxg@{d@xj@mzAxIcx@eBurA`PqgAzxBaxCrq@exAfZemAft@wiBdoAejExVimBhhAy~DoKyzB_^s{Bgc@qpBdA{`AjP}v@|oEi{KvEwbBsVweAaC}}@rLqmBr^_uB``@seHve@mxCreA}~D|QwaEfe@yfB~dCwjCxtAudDjMgk@`B_xAgR__B}O_qDxGqgCScaDno@mhB`|@}c@lmBu@zaA{g@rkGspInt@wgAhN{uAqRo{CmWi|FjEgkGhKghBaDqvAzG}sJ~b@{eCfUc`ChhCymIxt@mgDbcFaxM~Oul@|c@uhDvIuuB`NsrGpPwhAh]gaAriF{wJ|qC}nFvsFcyIpq@usAx_Lm_VnnByaDff@_sAbWgmAhJ{yA_@iuMuBmpQ`_@coBnvCqqFxoCiaGzxCs|FfaEybJfcIeaQjwDq`HlfE_uI`jGu`LjiCkcF`oB_fFr|BeeFbe@qx@hpAwsCljB}wDv`AayCfbAgzAraCihEfiF}pK~qD_}HvqDw|Gtx@}iBj`@a^nbBwHt{FQr_J{Xx}@`Rv~Ft`Ex`@vTamA|uDp]dkClq@fwAp{AnNpVfSpUz~@h\\zbCfi@xrAvg@n{B}H~w@qe@h^{j@vcA",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT",
+                        "rough": true
+                    }
+                ]
+            },
+            {
+                "position": 4.28125,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 48.9717363,
+                            "lon": -125.60718943037946
+                        },
+                        "polyline": "",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "id": "6835ac026c6cbb1083d20b39",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835ac026c6cbb1083d20b39"
+    },
+    {
+        "position": [
+            5.5,
+            5.453125
+        ],
+        "notes": "",
+        "visit_duration": 172800000,
+        "coordinates": {
+            "lat": 49.2570641882119,
+            "lon": -123.02294412405462
+        },
+        "address": "3010 Boundary Road,Burnaby,Britisk Columbia,CA",
+        "ack_warnings": false,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "St. Clair Hotel - Hostel",
+                    "coordinates": {
+                        "lat": 49.282587,
+                        "lon": -123.114125
+                    },
+                    "address": "577 Richards Street,Vancouver,,CA",
+                    "url": "/book/expedia?id=449817%3A7542257&lang=en-US&alt=hcom*449817%3A7542257'bookingdotcom*369968*%2Fhotel%2Fca%2Fst-clair.html"
+                },
+                {
+                    "name": "Kingston Hotel",
+                    "coordinates": {
+                        "lat": 49.281104,
+                        "lon": -123.116534
+                    },
+                    "address": "757 Richards Street,Vancouver,,CA",
+                    "url": "/book/expedia?id=376454%3A4320304&lang=en-US&alt=hcom*376454%3A4320304'bookingdotcom*248085*%2Fhotel%2Fca%2Fthe-kingston-bed-breakfast.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 5.5,
+                "route": [
+                    {
+                        "duration": 13307.499000000002,
+                        "distance": 383327,
+                        "coordinates": {
+                            "lat": 49.8800074,
+                            "lon": -119.47758
+                        },
+                        "polyline": "6kqlc~Afri{bFxxEjuYifMfsHxeJf_o@y~KdzJpxe@fodAbmMxc}@b}RnkL`z_@hjk@juCp_h@nvi@d_e@|vItct@mzP~{sBg~P|vw@izX`b{@crSpta@{z\\zx`@iaYfhcAwtBtrr@frDdsx@osZwmFsuOxyMe}Bzlz@myNhih@qdOxapAdbAbzcAhuQ`taChaBv|u@~l]j|oAh`CdkkAhrZnm`Bo|D~mUgw_@b`^mmHzsRgpIfz~@fdNt~u@oHvcm@hqN`wdAulB`dPs{u@p}hB}wm@`~n@adNbvg@|uD|s[uwYddWtiEtow@kvUha@s`h@s|Nism@osAofX~h_@_dVvvDq_t@rq_Aofc@rdUwec@n}HokEpxId`Kjr~@vhE~ueAdpLxlEhhZnuaAbda@ruQ~bj@ppg@fnQ~yAx_Nv}yAd`g@h`o@fbi@~qi@|tPvnAxz_@cnQdpf@hsKvrXkzMban@}tGtkTdiZtvSraJnzP_xDzzRp`Ujgs@jlXbcWp`ShkWpcc@ruNfaGn|Vpsa@~vk@frg@rawAjqGbxL}oGl}o@plEloUceCh{b@odT~fQpgKjk\\zh_AnnSpbWln`@vyaAgsDjx`AmvFrw]dtCrkf@`~k@von@prK`}@d}cAvei@toVllCxgSy`Mvb\\j}Qb]jh~@d{]xwUhoo@~vMh~Txnc@fgMvav@nsd@`rQx_`AvyApjF|nGak@~ez@n{GvbVdyXixFwpSh`jBym@`ps@ryL~k]|pGrglBmyE~jS|oCj{eA~aMxda@zxmAfieB~|XhtZ`nX|sl@xzaA|tVjvXy|Cp|n@v{[`eFz~Slyq@jurA|}Spnq@`r]vwp@|uJ|jv@a^ztiD~mTfeaBuOtziBhrMdraBnla@xa_Alww@vtj@n`y@`j|Afpl@lfcBziFlid@zElfaAwdEdamByge@nkuAqhtDtclM_y`AvdtF_wVzo~Ao`b@lxj@_wWnfLmdDxzN{bJrv_B_aWz{w@|_Rh|x@gvIfry@ed^l`k@|u@d~fA",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            },
+            {
+                "position": 5.453125,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 49.2570641882119,
+                            "lon": -123.02294412405462
+                        },
+                        "polyline": "",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    },
+                    {
+                        "mode": 0,
+                        "duration": 1500.3530000000003,
+                        "distance": 28643,
+                        "coordinates": {
+                            "lat": 49.375963,
+                            "lon": -123.27161
+                        },
+                        "polyline": "6qel}|A`|usiFoNHKdk@stCTau@m{@i\\hHan@`oBwiAtz@ch@xNquDnYqvFnsBgsBleAo_BjfAkdAjl@maBf[_wFM{fDrMwnAvMqg@g@u_AeUgiAgbAmnEkxFe_A{TyqGhFajK`Go`@dB}fAr_@orAdq@wy@nIoxDsEauAx@uu@p\\el@jbA}gCfxJqU~w@}fA|pBuVfUsoMffJoo@`j@av@zsAwXjgAmi@bpCg[rmAkd@zdA_t@haAm`Ax{@ao@ft@ch@r`Ak]jdAqZpbB{H|bAg@lbAlHrgGMhsG}CvhM}C~}FpBniDbAhvJ{AfbFcIffHiQ|vLc@pdCUxcV_Cd_Aed@j}AcdBxaD{eBxqDwa@vdAyVffAwKjfAoItbI}h@dlPiPvrBuUv~@qk@bkA{kAtnBql@brAk_@|hA}f@jaC}NtwAwu@~bOeEhfDrPdrFlApxAqBnmBkXrnFePxwHoNjvBce@b`B_gAb{BuUdx@sObpAiDpeAiDt{DpBlgD|Qf}F`n@xnNdFp|BExxAwNlmHaGrvA{Sr}B}uA`uIwW`dCoOleCuH|eDhD|_JeIbrBuUziAew@naCgb@ffBsJbqAaKnqDwXnxA{c@f~@oc@nd@i|@v[mu@y@}{B{`@ou@qBat@fPqf@p\\}v@zoAuXl_AwbAriE{UpzBcFr{ADp`BpFb`Azd@~fFbYhmBoHpzBqJxo@}Yxr@yp@pm@{e@rIqo@eHedAk_@oy@jIamA`w@_i@`Cc_@gYyfDieBar@ghAmZqw@{i@c`@c_A}EgbAdSe[}L{Y_B",
+                        "name": "",
+                        "url": "",
+                        "auto": 11,
+                        "pin": 95,
+                        "visit": 0,
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    },
+                    {
+                        "mode": 6,
+                        "duration": 440.143,
+                        "distance": 169,
+                        "coordinates": {
+                            "lat": 49.377485,
+                            "lon": -123.271427
+                        },
+                        "polyline": "6ultd}Arz{bjFc~AmJ",
+                        "name": "",
+                        "url": "",
+                        "auto": 11,
+                        "pin": 95,
+                        "visit": 0,
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "name": "Vancouver",
+        "id": "6835acfd6c6cbb1083d20b9a",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835acfd6c6cbb1083d20b9a"
+    },
+    {
+        "position": [],
+        "notes": "",
+        "visit_duration": 10800000,
+        "coordinates": {
+            "lat": 50.10232,
+            "lon": -122.9796
+        },
+        "address": "Whistler,BC,CA",
+        "ack_warnings": false,
+        "lodging": {},
+        "skip": true,
+        "expander": [],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "name": "",
+        "id": "6835ad666c6cbb1083d20bba",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835ad666c6cbb1083d20bba"
+    },
+    {
+        "position": [],
+        "name": "Kamloops",
+        "notes": "",
+        "visit_duration": 86400000,
+        "coordinates": {
+            "lat": 50.678844,
+            "lon": -120.325399
+        },
+        "address": "Kamloops,BC,CA",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/node/3895683669",
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Acadian Motor Inn",
+                    "coordinates": {
+                        "lat": 50.672418,
+                        "lon": -120.307626
+                    },
+                    "address": "1390 Columbia St, East,Kamloops,,CA",
+                    "url": "/book/expedia?id=337247%3A3167265&lang=en-US&alt=hcom*337247%3A3167265"
+                },
+                {
+                    "name": "Riverland Inn & Suites",
+                    "coordinates": {
+                        "lat": 50.674966,
+                        "lon": -120.303066
+                    },
+                    "address": "1530 River St,Kamloops,,CA",
+                    "url": "/book/expedia?id=271565%3A2168572&lang=en-US&alt=hcom*271565%3A2168572'bookingdotcom*282679*%2Fhotel%2Fca%2Fthe-riverland-inn-suites.html"
+                }
+            ]
+        },
+        "skip": true,
+        "expander": [],
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "id": "6835adc66c6cbb1083d20c0e",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835adc66c6cbb1083d20c0e"
+    },
+    {
+        "position": [],
+        "name": "Clearwater",
+        "notes": "",
+        "visit_duration": 172800000,
+        "coordinates": {
+            "lat": 51.6504067546023,
+            "lon": -120.06546020507812
+        },
+        "address": "209 Dutch Lake Road,Clearwater,Britisk Columbia,CA",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/way/553416552",
+        "pin": 71,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Stoneshire Guesthouse",
+                    "coordinates": {
+                        "lat": 51.652198,
+                        "lon": -120.067167
+                    },
+                    "address": "332 Dutch Lake Road,Clearwater,,CA",
+                    "url": "/book/expedia?id=559180%3A12786669&lang=en-US&alt=hcom*559180%3A12786669"
+                },
+                {
+                    "name": "Dutch Lake Motel",
+                    "coordinates": {
+                        "lat": 51.647296999999995,
+                        "lon": -120.05193299999999
+                    },
+                    "address": "333 Roy Road,Clearwater,,CA",
+                    "url": "/book/expedia?id=562186%3A12988842&lang=en-US&alt=hcom*562186%3A12988842"
+                }
+            ]
+        },
+        "skip": true,
+        "expander": [],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "id": "6835ae286c6cbb1083d20c42",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835ae286c6cbb1083d20c42"
+    },
+    {
+        "position": [],
+        "name": "Jasper",
+        "notes": "Ramt af skovbrænde tidligere, og måske ikke lige så fedt som Jasper\n\n- Overrendt",
+        "visit_duration": 172800000,
+        "coordinates": {
+            "lat": 52.87524295162254,
+            "lon": -118.08242797851562
+        },
+        "address": "AB,CA",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/node/5947836829",
+        "pin": 71,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Calla's Palace",
+                    "coordinates": {
+                        "lat": 52.873736,
+                        "lon": -118.08526499999999
+                    },
+                    "address": "717 Geikie Street,Jasper,,CA",
+                    "url": "/book/expedia?id=484284%3A9613043&lang=en-US&alt=hcom*484284%3A9613043"
+                },
+                {
+                    "name": "Lobstick Lodge",
+                    "coordinates": {
+                        "lat": 52.886534,
+                        "lon": -118.08004899999999
+                    },
+                    "address": "94 Geikie St,Jasper,,CA",
+                    "url": "/book/expedia?id=179425%3A27684&lang=en-US&alt=hcom*179425%3A27684'bookingdotcom*246962*%2Fhotel%2Fca%2Flobstick-lodge.html"
+                }
+            ]
+        },
+        "skip": true,
+        "expander": [],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -360,
+        "tzname": "America/Edmonton",
+        "tzabbr": "MDT",
+        "id": "6835ae6c6c6cbb1083d20c5e",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835ae6c6c6cbb1083d20c5e"
+    },
+    {
+        "position": [
+            14.5,
+            14,
+            13
+        ],
+        "name": "Banff",
+        "notes": "Relativt overrendt - har lake Louise som er den mest kendte\nHun forslår 3 nætter, hvor man bor i byen og kører ind i nationalparken om morgenen.\nhttps://parks.canada.ca/pn-np/ab/banff/visit",
+        "visit_duration": 259200000,
+        "coordinates": {
+            "lat": 51.175038302372144,
+            "lon": -115.57205200195312
+        },
+        "address": "Banff,AB,CA",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/node/2125399237",
+        "pin": 71,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Ywca Banff Hotel",
+                    "coordinates": {
+                        "lat": 51.171744999999994,
+                        "lon": -115.569794
+                    },
+                    "address": "102 Spray Avenue,Banff,,CA",
+                    "url": "/book/expedia?id=324168%3A2839932&lang=en-US&alt=hcom*324168%3A2839932"
+                },
+                {
+                    "name": "King Edward Hotel",
+                    "coordinates": {
+                        "lat": 51.17651,
+                        "lon": -115.570996
+                    },
+                    "address": "137 Banff Ave,Banff,,CA",
+                    "url": "/book/expedia?id=326652%3A2899948&lang=en-US&alt=hcom*326652%3A2899948'bookingdotcom*10165208*%2Fhotel%2Fca%2Fking-edward-banff.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 14.5,
+                "route": [
+                    {
+                        "duration": 20497.287,
+                        "distance": 546017,
+                        "coordinates": {
+                            "lat": 48.496360102442566,
+                            "lon": -113.98246765136719
+                        },
+                        "polyline": "6yl~n{Al`}kxEhdEqmy@olOgqe@viQajo@teAqlyAb{~BcqfCxgMs~cAao@mwp@v{~Ak{bBbwHwta@pb^kxb@h`ZkzCxkaB{|bAfsa@{jKhnTmey@ffh@eeFnaBgnm@yiPm~iBa~I{l`@sr|@ozwAcrWq`YzdAo`WoeWmieAm`d@yq\\cmm@av}@wwf@_ffAgnZokKc_h@exm@upd@aceA{~KcdFqddA~_d@khhAlwjAmjR`qHwl`@x_bAmo]saHnmDqhk@{sX{kTks`@fgOmbf@ihKaqlAf_mAi_h@~tOsfMlkd@amv@fve@oqEpfl@ayOh_OcvBvsi@axt@fdGq{Y|aXyp`@_pWqmcAkePsem@|eWaep@}iE}a\\bhe@ehz@rdEomaA_}OsmbAc~eAsnqAmb^yhnAivo@qoo@_k@yfyAigfB_ce@wy[kpdAcBksk@~v^agc@orGck`Hc@ave@jsTwlkCxI}cUxkFkci@ulQsms@t{y@}yg@rlSauvB`Fyvu@veUsv~@xgH{sgAnvu@m_v@jt@alTtjd@`zXzv`AqulA|zeBukk@|ur@{pSnmEozxC`@ak}A~wGm{aLf{dE_fdBncp@qqnBxg@seg@|zJs|o@r}nAsu`@lz[w{[dwGmm[bt^asKxqe@oep@vz_A}|^|xSsp_@dpf@a`b@`dKoukJ\\at_@f{NcqmAnFqla@jx|@uxe@~_Ziiy@~DumVb|P{gkC|ifDshhAvuqA}|m@vpe@olr@f|VmLrk{Bo|GhxRw`w@zi\\spj@aa@shdAb_o@oqk@vxLc~[ljjB{rLdnLetqAykN_n`@fhIxx@vdp@sBflcJr}Bn}_@u`Ap|sC}mIfq_@ruAljz@wug@vkeCulbApchD_mXnrg@oq@rwr@j`TlrgArdG~qzAntb@`azDb|cAnxlDxq^zgTljPtzn@{tCx}aAdx\\jlp@biK~jlAovL`g\\x{[hwqAhnBh~q@ira@ph|A}_y@lan@}qcA~drA_iQ~od@oq_AbhqAkuJlmj@uiu@bf|@iqTrr}@~eXntn@h~L~hy@xbYuuU",
+                        "tzoffset": -360,
+                        "tzname": "America/Edmonton",
+                        "tzabbr": "MDT"
+                    }
+                ]
+            },
+            {
+                "position": 14,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 51.175038302372144,
+                            "lon": -115.57205200195312
+                        },
+                        "polyline": "",
+                        "tzoffset": -360,
+                        "tzname": "America/Edmonton",
+                        "tzabbr": "MDT"
+                    }
+                ]
+            },
+            {
+                "position": 13,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 51.175038302372144,
+                            "lon": -115.57205200195312
+                        },
+                        "polyline": "6",
+                        "tzoffset": -360,
+                        "tzname": "America/Edmonton",
+                        "tzabbr": "MDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -360,
+        "tzname": "America/Edmonton",
+        "tzabbr": "MDT",
+        "id": "6835ae81fa06bbcf43bebac1",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835ae81fa06bbcf43bebac1"
+    },
+    {
+        "position": [
+            16,
+            15
+        ],
+        "name": "West Glacier",
+        "notes": "Det er ikke noget bøvl at pasere grænsen mener hun\n\nHun laver ikke Glacier særligt tit - ikke så mange som tager dertil\n\nHun siger at man typisk vil overnatte i Kalispell, hip som hap hvor man bor - billigst og bedst\n",
+        "visit_duration": 172800000,
+        "coordinates": {
+            "lat": 48.496360102442566,
+            "lon": -113.98246765136719
+        },
+        "address": "West Glacier,MT,US",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/node/4316711835",
+        "pin": 71,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Glacier General Store & Cabins",
+                    "coordinates": {
+                        "lat": 48.437745,
+                        "lon": -114.041691
+                    },
+                    "address": "10630 HWY 2 East,Coram,,US",
+                    "url": "/book/expedia?id=529453%3A11444514&lang=en-US&alt=hcom*529453%3A11444514"
+                },
+                {
+                    "name": "Silverwolf Log Chalet Resort",
+                    "coordinates": {
+                        "lat": 48.432385,
+                        "lon": -114.043908
+                    },
+                    "address": "160 Gladys Glen,Coram,,US",
+                    "url": "/book/expedia?id=536546%3A11771711&lang=en-US&alt=hcom*536546%3A11771711"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 16,
+                "route": [
+                    {
+                        "duration": 22136.84,
+                        "distance": 631520,
+                        "coordinates": {
+                            "lat": 44.73420492138345,
+                            "lon": -111.23262382475527
+                        },
+                        "polyline": "6knmitA|mxcsEkR}r@ae@{o@oU_s@}DaWia@yZyc@{BrZa|@tUwb@vf@af@dc@gx@lKw[nNafArb@cbAzp@kp@zu@}[dp@_Kx`@wd@~gA}{@bRkDxi@}BnKyCx_@dShdAx[`eAtKtc@n@hy_Byhy@etNxzrCp|n@vy{Atpr@xca@wjr@~q`Aue_@hxqBubf@~xeAkjj@|w]gfuAedHu~fC`|h@ixfAn_oCervA~wlAg{nAdob@ymy@bfv@mejDklC{{z@`hHaruAzau@gdnF|Pmh}Bz`n@in]bay@ak{EivDy~dBwlrAmhi@roX}`cAm{OotiFb}pD{~y@xoBkaa@rd`@m{S||dB_ro@`tiBkkhA`bq@e~nBx`h@ezO|}kHaceA`b|IncMhgeAicW~kuEgos@v_}@{t_Aps\\qgWlmkCofXvpl@onHbg_GwjsBdloCwtxArxc@msyCwx`@m}jCc~}@a`jEyjRifn@itj@wsqDbcKyukAhlrCwo]snmEoqO{o^uguAkmp@mjCwhtBwvcAtjeAa{iAfkn@}muAxpRykfBziyAevRvtaBukl@rcjAchhAn}cEex_CbbiBekwBdh`@qy`BxfcE_rJv|hBe{k@perBps\\ftpBngGt{dCxrj@htvBcmlBnwn@cbTafUye|@rl_@m_a@~tsA}sdC`wqAk_~@~geA}seDljdBuxrB|tg@mlb@|a`AukeBt}kAa}gBhxNcqgCh~{ByhqB`yh@yvzBla{A}x`Edqh@{s}FttGqdu@|af@m~u@jpxA{auAdehBorfArcf@}g_BjxDkLznxEoexBzmp@elq@{mGocQhy~Aed`AdhJ}{wFupIwox@kahAm{Daf`CagqB_kc@ane@mdhAkwh@lPuSaRm^q]}\\e`@gb@sl@aWib@q[ek@yXsm@eQyd@{Wky@qWq`Acf@{iB_Xw`AiZaaAkNia@qNo_@idBmnEuZ_x@qjAmxCmOya@eNvNaQjToWf^kRzY_FaMiBdC",
+                        "tzoffset": -360,
+                        "tzname": "America/Denver",
+                        "tzabbr": "MDT",
+                        "rough": true
+                    }
+                ]
+            },
+            {
+                "position": 15,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 48.496360102442566,
+                            "lon": -113.98246765136719
+                        },
+                        "polyline": "6",
+                        "tzoffset": -360,
+                        "tzname": "America/Denver",
+                        "tzabbr": "MDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -360,
+        "tzname": "America/Denver",
+        "tzabbr": "MDT",
+        "id": "6835bd206c6cbb1083d2192c",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835bd206c6cbb1083d2192c"
+    },
+    {
+        "position": [
+            18.5,
+            18,
+            17
+        ],
+        "notes": "Mange vælger at bo ved west yellowstone, der er mange restauranter osv.\n\nDet er nok for sent at bo i parken, og der er ikke spisning i parken.\n\nDer er ikke særligt langt til indgangen (vest).\n\nFørste dag tager man det øvre loop, anden dag det andet. (parken er formet som et 8 tal).\n\nHun forslår 3 nætter",
+        "visit_duration": 259200000,
+        "coordinates": {
+            "lat": 44.73420492138345,
+            "lon": -111.23262382475527
+        },
+        "address": "",
+        "ack_warnings": false,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Yellowstone Self Catering Lodging - Adults Only",
+                    "coordinates": {
+                        "lat": 44.663243,
+                        "lon": -111.110401
+                    },
+                    "address": "530 Highway Avenue,West Yellowstone,,US",
+                    "url": "/book/expedia?id=438055%3A6405770&lang=en-US&alt=hcom*438055%3A6405770"
+                },
+                {
+                    "name": "Lake View Suites",
+                    "coordinates": {
+                        "lat": 44.80583,
+                        "lon": -111.241061
+                    },
+                    "address": "15475 Hebgen Lake Road,West Yellowstone,,US",
+                    "url": "/book/expedia?id=698047%3A18541221&lang=en-US&alt=hcom*698047%3A18541221'bookingdotcom*2332302*%2Fhotel%2Fus%2Flake-view-suites.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 18.5,
+                "route": [
+                    {
+                        "duration": 17165.806,
+                        "distance": 521830,
+                        "coordinates": {
+                            "lat": 40.772984,
+                            "lon": -112.013718
+                        },
+                        "polyline": "6ojrwlAzuwstEeLoWSmvM~_@tCltB@~e@gDf_@kOdj@sl@nNe\\jJ{a@dR{zA|Yq_BjY{fAxd@wwA|`Ae_DtRsu@hUsiAjU{xArVseChKovCn@kuAPafEw@yvN\\coKkGaxCy@km@|z@oa\\cynBwbAif_@eqNmrk@laDqtbAckU}wk@cdz@c~]chQcu|@wCygm@nxSkkp@j_fA}}i@zmNq_y@dyh@c|wBpolBs}dB_pNcoh@cmk@wem@ne`@sptA~w[uazAcWa_xAt{`@m|r@a~Ak{uA|r]yjmBkzGqk_AffUqg|B`eP}foAhdg@ik{ArvjAskr@z{bBapPjjPicq@{q@oi`B_md@spfAl`MiuuA{zRej}BlvCagbAtdOojc@nrX{fuCfxp@eofBudCmjvAxhEq~r@tjZwqaAbnH}vdC{|y@kv^tt@_qbAzm^qoaAud[adzCu|kAydQ_kCakxCv`C}qfCj_o@qkjDvvo@aoiDdkSw}Yvve@ikFx~}CptH|g\\crJ`jj@q{~@lekAmibC|lw@}`rAq`@c|mBw}r@yydBk~EmmbC{gc@w~lA~E{t[maIo|yD_n`Dyg_Cqu{BukeCsejCmrxAinyBmejAmf}AgcZpLocuAimmB{{{FmmrDczs@uuWoho@abn@}ztBco~Aqfs@aaRq}y@ayEm|i@ujvAkyw@eay@y~gAwiz@qfq@mzVs}Myk|A}biBwrjGmzsAii}A_xu@exA_ajBqc|@ebc@wk@iyi@l|g@guqCfcn@csnB}sa@q_gAyawAmy{A{iz@i~`Ak`PoxzCadmA{fbBbaSc_lBupDou`Aqjo@q|n@wy{Aey@ccuAjnPuv|@yh{@jn_@yIrPg^leCuc@vlA{eBfgAinAfYizB~BunBsh@gg@~]mpA~mBwsDniAcoBt~DexA`nAodBff@ibAfHwiBeMceB_p@miAbMyiBtaBagB|g@{p@jp@cr@diCkwA`|Biq@x_BbfAt^ztAzoD",
+                        "tzoffset": -360,
+                        "tzname": "America/Denver",
+                        "tzabbr": "MDT",
+                        "rough": true
+                    }
+                ]
+            },
+            {
+                "position": 18,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 44.73420492138345,
+                            "lon": -111.23262382475527
+                        },
+                        "polyline": "",
+                        "tzoffset": -360,
+                        "tzname": "America/Denver",
+                        "tzabbr": "MDT"
+                    }
+                ]
+            },
+            {
+                "position": 17,
+                "route": [
+                    {
+                        "duration": 0,
+                        "distance": 0,
+                        "coordinates": {
+                            "lat": 44.73420492138345,
+                            "lon": -111.23262382475527
+                        },
+                        "polyline": "",
+                        "tzoffset": -360,
+                        "tzname": "America/Denver",
+                        "tzabbr": "MDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -360,
+        "tzname": "America/Denver",
+        "tzabbr": "MDT",
+        "name": "Lonesomehurst",
+        "url": "",
+        "pin": 11,
+        "icon": "rec_gov",
+        "id": "6835bd4efa06bbcf43bec85a",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835bd4efa06bbcf43bec85a"
+    },
+    {
+        "position": [],
+        "name": "Toppings Lakes",
+        "notes": "",
+        "visit_duration": 172800000,
+        "coordinates": {
+            "lat": 43.74059,
+            "lon": -110.4847
+        },
+        "address": "WY,US",
+        "ack_warnings": false,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Hatchet Resort",
+                    "coordinates": {
+                        "lat": 43.82557,
+                        "lon": -110.359242
+                    },
+                    "address": "19980 E Hwy 287,Moran,,US",
+                    "url": "/book/expedia?id=214510%3A893853&lang=en-US&alt=hcom*214510%3A893853'bookingdotcom*368035*%2Fhotel%2Fus%2Fthe-hatchet-resort.html"
+                },
+                {
+                    "name": "Heart 6 Ranch",
+                    "coordinates": {
+                        "lat": 43.848791999999996,
+                        "lon": -110.41824799999999
+                    },
+                    "address": "16985 Buffalo Valley Road,Moran,,US",
+                    "url": "/book/expedia?id=409969%3A5142632&lang=en-US&alt=hcom*409969%3A5142632'bookingdotcom*715560*%2Fhotel%2Fus%2Fheart-six-ranch.html"
+                }
+            ]
+        },
+        "skip": true,
+        "expander": [],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -360,
+        "tzname": "America/Denver",
+        "tzabbr": "MDT",
+        "id": "6835bd7e6c6cbb1083d2198b",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6835bd7e6c6cbb1083d2198b"
+    },
+    {
+        "position": [
+            12.453125
+        ],
+        "name": "Revelstoke",
+        "notes": "",
+        "visit_duration": 86400000,
+        "coordinates": {
+            "lat": 50.99372296467109,
+            "lon": -118.19134525270215
+        },
+        "address": "Townley Street,Revelstoke,Britisk Columbia,CA",
+        "ack_warnings": false,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "The Cube Boutique Hotel",
+                    "coordinates": {
+                        "lat": 50.999033,
+                        "lon": -118.19855199999999
+                    },
+                    "address": "311 Campbell Avenue,Revelstoke,,CA",
+                    "url": "/book/expedia?id=474012%3A9029029&lang=en-US&alt=hcom*474012%3A9029029"
+                },
+                {
+                    "name": "Grizz Hotel",
+                    "coordinates": {
+                        "lat": 50.998338999999994,
+                        "lon": -118.198048
+                    },
+                    "address": "200 3rd Street West,Revelstoke,,CA",
+                    "url": "/book/expedia?id=465229%3A8644255&lang=en-US&alt=hcom*465229%3A8644255'bookingdotcom*5963157*%2Fhotel%2Fca%2Fgrizz.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 12.453125,
+                "route": [
+                    {
+                        "duration": 11339.199999999999,
+                        "distance": 282848,
+                        "coordinates": {
+                            "lat": 51.175038302372144,
+                            "lon": -115.57205200195312
+                        },
+                        "polyline": "6qfnr`B|g}l{EybYtuU`mOzeu@`vDhrq@trEhhVb{\\tvz@oFpeh@ekHvcf@alX|ob@}wg@`|q@oyi@hj|@cpMzpz@q_Y~qx@snMx}p@a{IjrM{o]jgnByvZb}w@sfLlrj@m}~@j~rAaum@nj`AiuKhg[ekOvvVyxRxjKqkn@fr{@a{Inp`@mmYrkZy}Vt{Fc~Knc`@}{JzfKsaEdyRlPx~d@epChxd@ucOvpUkmItbWrlHp`[poAbyk@|cIpcm@`nRjj{@v\\r{h@ttHxrWxy@nw`@t|Rp~`@xr@d~Wxd`@zxoAfmIhvQbiXfbRlmHbhOryLhpBfn^rpd@rkp@~oh@`vJh{b@xqd@~`Md}k@vwC~tRtsZzij@iiSt{L}lLnoLx`AfqW_~LrkKdqJqfI~onAy}Phwg@guYlnl@eyP~xm@imFxn[_aDnts@chRjbi@wfTztqA|jE|w]i|O~f]}lF`zb@u`Nlff@_eMtmWfaArwWdeKjkh@wDjue@c_Ej{h@|aAnzVizj@b_Z}bXjv^}|XpoNkp^pa[ogy@t}[{x~@ti|@yoa@b|{@isj@t_cAsdUblg@c|Lrai@|qCph\\{kOpuj@gyEhzZlpKp_LnjNquO`pLbsJeeUda`A_mMv~bApKhdJvlY`tnBkgBtdWqwV`~x@qi[fgo@_fE`zd@d~J|fL|sF|}Vtcm@jae@d_dBqxJje_@ewFhnk@qal@`uLheHzf`@csXdkb@s`IlbZ|lSdl_@xf`C~eS~pPpdk@mkMvaWqtMhdQ~y~@{dDveXlb@drYjwFddd@diG`kQnqN~seAq\\zmLdxOptp@jsf@b_q@foGbpW`_MrseA|uEjePx{XfyHnlf@lebApr[~xfAz_BjpVhxMjuKxlIjh_@tfBhwi@j}ChfG|z[nrGpnO~dVnnz@lpv@|ww@p}SldTba|@zoAfvm@`qIvgk@vxKvve@dfUx{wAhfOpfh@hcEpgXbhVjbg@dtAvs`@{iLpud@duIx~d@",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "id": "683db58659b9f42ee5ecbc10",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/683db58659b9f42ee5ecbc10"
+    },
+    {
+        "position": [
+            19.5
+        ],
+        "name": "Salt Lake City International Airport",
+        "notes": "",
+        "visit_duration": 10800000,
+        "coordinates": {
+            "lat": 40.79142677512476,
+            "lon": -111.97857856750488
+        },
+        "address": "3920 West Terminal Drive,Salt Lake City,UT,US",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/way/33005585",
+        "pin": 23,
+        "lodging": {
+            "active": false,
+            "alternative": [
+                {
+                    "name": "Motel 6 Salt Lake City West - Airport",
+                    "coordinates": {
+                        "lat": 40.771543,
+                        "lon": -111.948309
+                    },
+                    "address": "1990 W North Temple,Salt Lake City,,US",
+                    "url": "/book/expedia?id=454018%3A50601&lang=en-US&alt=hcom*454018%3A50601"
+                },
+                {
+                    "name": "Airport Inn Hotel",
+                    "coordinates": {
+                        "lat": 40.77149,
+                        "lon": -111.95665
+                    },
+                    "address": "2333 W North Temple,Salt Lake City,,US",
+                    "url": "/book/expedia?id=160565%3A76942&lang=en-US&alt=hcom*160565%3A76942'bookingdotcom*45489*%2Fhotel%2Fus%2Fsonesta-simply-suites-salt-lake-city-airport.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 19.5,
+                "route": [
+                    false
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -360,
+        "tzname": "America/Denver",
+        "tzabbr": "MDT",
+        "id": "6849d3ea347179e96dd9ea09",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6849d3ea347179e96dd9ea09"
+    },
+    {
+        "position": [
+            11.90625
+        ],
+        "name": "Kelowna",
+        "notes": "",
+        "visit_duration": 86400000,
+        "coordinates": {
+            "lat": 49.8800074,
+            "lon": -119.47758
+        },
+        "ack_warnings": false,
+        "url": "/book/bookingdotcom?alt=expedia*1468095040%3A45846720'hotelsdotcom*1468095040%3A45846720&id=6117555&brand=%2Fhotel%2Fca%2Fhyatt-place-kelowna.html&lang=en-US&currency=USD",
+        "pin": 0,
+        "icon": "booking-dot-com",
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Oasis Inn",
+                    "coordinates": {
+                        "lat": 49.88016,
+                        "lon": -119.47762999999999
+                    },
+                    "address": "1884 Gordon Drive,Kelowna,,CA",
+                    "url": "/book/expedia?id=323198%3A2774656&lang=en-US&alt=hcom*323198%3A2774656'bookingdotcom*392371*%2Fhotel%2Fca%2Fchinook-and-oasis-motel.html"
+                },
+                {
+                    "name": "Kelowna Inn And Suites",
+                    "coordinates": {
+                        "lat": 49.883691,
+                        "lon": -119.478712
+                    },
+                    "address": "1070 Harvey Ave,Kelowna,,CA",
+                    "url": "/book/expedia?id=310856%3A6998857&lang=en-US&alt=hcom*310856%3A6998857"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 11.90625,
+                "route": [
+                    {
+                        "duration": 8403.689,
+                        "distance": 199960,
+                        "coordinates": {
+                            "lat": 50.99372296467109,
+                            "lon": -118.19134525270215
+                        },
+                        "polyline": "6}clg`Bfnyl`F}cIx|Bk`P~i[cnBd}Nj_KxxQbeH`r\\taH~`IbhDths@d~H~hc@xeJxuTh^zgTdiKjp\\d|Cb`TtTzd^l`Nbac@pZ|oUppJj_^nhLlmM|eL|v_@xuGxrE`aRd{|@zgA`zWcgGhwPicGvxCqgTqqEyuU``_@uiRtiSojM`|]efAdkQ~hAbxe@baJzt_@iaA~sf@cxElv[ifMj{V{mD``S{pWjyb@ojHpsT{iAboPtxBjoZhlFffSdzYzrt@bee@`qa@tza@flmAzy\\tz`@vpOb_Frxi@lli@xbRtt\\|sChvf@ihE~bVppMtfmAltCdvMtlMvzRlgTtmLb_MnbV`aNnyLjdRnc]zz@jfVjaIhpHv_JlQf`FirN~uTpF`sNueDby_@~jl@hqJphBvyHpbNbjPbjDvbQj`T~rFrbPrxWerDlzQzxKnqw@rnK|vPz~K~aEgh@xjP`qSj}KnmF|xQjjRfmEhgM|sMtcEtiMxlMjuC|`[~yFnqIprZ`xRcq@`|PzmDnoFpjCjmX`aMprCpyFzxK~z]jmIteRje@nq^{sHr`^{mRfwVtBdaXiiEpxVtjD~{PctBldcApQdqUtqPjbUbj~@|kEjyDnte@xv@ztE~nBp`b@rhh@flE`mM|l]`fS~hb@hu]`qW~sKhrNayDb|[_~Bngv@doQ~l[xlStyAx|QjaKbnKrsLitEr_s@sH~tFllJlln@fmSbgK`xWhhQlcOj`Ed~Kl_NjwIjlKhiUjnHrk\\nyJjzEhjKvjSnxJh|IxsYdmCvkNfiPhcSvhJpqU`jBbgUzjTls[lPdb]~sJvzWp~K|rS}~EvjF`oFxi_@m`Nlx\\tuCfaI}pDbxj@\\b{o@}nc@zxk@tbBrzPj{F~hKo|FvmXpfCfvJp`Thgd@v`b@rsRxeb@m@|b{@mdBn|SnkFx\\",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            }
+        ],
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "address": "1884 Gordon Drive,Kelowna,BC,CA",
+        "id": "6849d551347179e96dd9eb49",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6849d551347179e96dd9eb49"
+    },
+    {
+        "position": [],
+        "name": "Daniel J. Evans Wilderness",
+        "notes": "",
+        "visit_duration": 3600000,
+        "coordinates": {
+            "lat": 47.94619053062473,
+            "lon": -123.83362165599557
+        },
+        "address": "WA,US",
+        "ack_warnings": false,
+        "lodging": {},
+        "skip": true,
+        "expander": [],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "id": "6852d03fffbbbf53d5c73753",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/6852d03fffbbbf53d5c73753"
+    },
+    {
+        "position": [
+            5.3125
+        ],
+        "name": "",
+        "notes": "",
+        "visit_duration": 0,
+        "coordinates": {
+            "lat": 49.37747953134965,
+            "lon": -123.27119945649399
+        },
+        "auto": false,
+        "ack_warnings": false,
+        "url": "",
+        "pin": 95,
+        "lodging": {},
+        "skip": false,
+        "expander": [
+            {
+                "position": 5.3125,
+                "route": [
+                    {
+                        "mode": 0,
+                        "duration": 5.684341886080802e-14,
+                        "distance": 6,
+                        "coordinates": {
+                            "lat": 49.377485,
+                            "lon": -123.271427
+                        },
+                        "polyline": "6ykwd}Ado{bjF",
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    },
+                    {
+                        "mode": 6,
+                        "duration": 6314.276,
+                        "distance": 56808,
+                        "coordinates": {
+                            "lat": 49.193506,
+                            "lon": -123.955402
+                        },
+                        "polyline": "6ykwd}Ado{bjFggJdkEy[baPhrD~qR~pOp~Qhj}@fwi@|mWbnZ`dLv|]|_Glua@n_tDzvh^r`Kxfj@bj]l{qA|{PzbI",
+                        "name": "",
+                        "url": "",
+                        "auto": 11,
+                        "pin": 95,
+                        "visit": 0,
+                        "tzoffset": -420,
+                        "tzname": "America/Vancouver",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            }
+        ],
+        "tzoffset": -420,
+        "tzname": "America/Vancouver",
+        "tzabbr": "PDT",
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "address": "Britisk Columbia,CA",
+        "id": "685e964d1da8971c9c73b465",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/685e964d1da8971c9c73b465"
+    },
+    {
+        "position": [
+            -1
+        ],
+        "name": "Sleep Inn - SeaTac Airport",
+        "notes": "",
+        "visit_duration": 86400000,
+        "coordinates": {
+            "lat": 47.41833857097683,
+            "lon": -122.29624271392822
+        },
+        "address": "20406 International Boulevard,Des Moines,WA,US",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/way/651627792",
+        "pin": 0,
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Motel 6 Seattle South",
+                    "coordinates": {
+                        "lat": 47.416663,
+                        "lon": -122.28842499999999
+                    },
+                    "address": "20651 Military Rd S,SeaTac,,US",
+                    "url": "/book/expedia?id=453494%3A988788&lang=en-US&alt=hcom*453494%3A988788'bookingdotcom*315903*%2Fhotel%2Fus%2Fmotel-6-seattle-south.html"
+                },
+                {
+                    "name": "Skyway Inn Seatac",
+                    "coordinates": {
+                        "lat": 47.421394,
+                        "lon": -122.29661899999999
+                    },
+                    "address": "20045 International Blvd,SeaTac,,US",
+                    "url": "/book/expedia?id=129748%3A18304&lang=en-US&alt=hcom*129748%3A18304'bookingdotcom*59285*%2Fhotel%2Fus%2Fskyway-inn-seatac.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": -1,
+                "route": [
+                    {
+                        "duration": 1154.1779999999972,
+                        "distance": 23203,
+                        "coordinates": {
+                            "lat": 47.602895,
+                            "lon": -122.339841
+                        },
+                        "polyline": "6}kmxyA`_`jhFqHypC~zQqbBbxM|dFhzs@kJtvS}fIh{N~{@ty_@wyB`{`@ydOfhY|ZzyWdwClvK|eE`jPvjAp~c@grTp~Coi@no@jB`o@tJhu@x\\jxAvhAtXdHpc@cJjUeZzEma@oEkmAjTsu@xfCgvFpYevAFwkGpAmXfAkcMaAyQlA}qJljDuN`fCdI~uKzr@ltCjSpfB~IGmmAx[@tHrd@",
+                        "tzoffset": -420,
+                        "tzname": "America/Los_Angeles",
+                        "tzabbr": "PDT",
+                        "tolls": true
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Los_Angeles",
+        "tzabbr": "PDT",
+        "id": "685e97f21da8971c9c73b9f5",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/685e97f21da8971c9c73b9f5"
+    },
+    {
+        "position": [
+            -2
+        ],
+        "name": "Seattle-Tacoma International Airport",
+        "notes": "",
+        "visit_duration": 3600000,
+        "coordinates": {
+            "lat": 47.44963250251638,
+            "lon": -122.30850577354431
+        },
+        "address": "SeaTac,WA,US",
+        "ack_warnings": false,
+        "pin": 23,
+        "lodging": {},
+        "skip": false,
+        "expander": [
+            {
+                "position": -2,
+                "route": [
+                    {
+                        "duration": 493.163,
+                        "distance": 5168,
+                        "coordinates": {
+                            "lat": 47.41833857097683,
+                            "lon": -122.29624271392822
+                        },
+                        "polyline": "6keemyAbzjghF?fO_AbDuFWHpG?nDgTmAuFaAeG]chCiPi[qBe\\wBqNaAuCMgEe@cCa@}He@eRmAcRiAmW_Bef@wCcaAsF_CKcr@iE_ToAmZiBqDY_Iu@oHy@{Z}Baa@oCwz@}FuDUmKg@u_@sBwW]eDC_GKgLOo]a@{FN{hAzCg~@bCgQj@yGX}`@tAid@`BqhA|DuNb@iRf@qQVuPp@c`B`Hs\\h@w]f@g`@d@gm@p@wXtAe\\rA{ITacApD{\\bAoHP}i@tAgEBmOn@eMp@u`@xAyFNyRn@mABaZfAgMLqHTcC?mUGeLMuFU{Ga@_]}AoQq@yF_@sq@yIcMaBk@AiGoAA`WX|s@P|QDtSBdHQzh@C`EDzn@CjEYzS?pFCzVfAhSCba@zEmBx@WrN}EnGwCdGmDhH}FrHoGpKgNnu@kkA~C}BlC{@fDa@|LC|GSxGA~B`@x@h@rAnA`F|DlMvExCxB`ErDjBrB|BzClQ~YzDtHbDlIxB|GtDxNbDtUv@pLR~KIpKYnKu@nLeAbJqAdHaBbHsBrHgChGaN`Yo`@h}@s@xBu@vDMfB?hWmw@O_REyc@QoAI",
+                        "tzoffset": -420,
+                        "tzname": "America/Los_Angeles",
+                        "tzabbr": "PDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -420,
+        "tzname": "America/Los_Angeles",
+        "tzabbr": "PDT",
+        "id": "685e98225032a12cf287993b",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/685e98225032a12cf287993b"
+    },
+    {
+        "position": [
+            19
+        ],
+        "name": "DoubleTree by Hilton Hotel Salt Lake City Airport",
+        "notes": "",
+        "visit_duration": 86400000,
+        "coordinates": {
+            "lat": 40.772984,
+            "lon": -112.013718
+        },
+        "address": "5151 Wiley Post Way,Salt Lake City,UT,US",
+        "ack_warnings": false,
+        "url": "https://www.openstreetmap.org/way/692636093",
+        "lodging": {
+            "active": true,
+            "alternative": [
+                {
+                    "name": "Quality Inn & Suites Airport West",
+                    "coordinates": {
+                        "lat": 40.775623,
+                        "lon": -112.02278
+                    },
+                    "address": "315 Admiral Byrd Rd.,Salt Lake City,UT,US",
+                    "url": "/book/expedia?id=141812%3A104995&lang=en-US&alt=choicehotels*UT155*www.choicehotels.com'hcom*141812%3A104995'bookingdotcom*458859*%2Fhotel%2Fus%2Fquality-inn-suites-airport-west-salt-lake-city.html"
+                },
+                {
+                    "name": "Microtel Inn & Suites By Wyndham Salt Lake City Airport",
+                    "coordinates": {
+                        "lat": 40.770699,
+                        "lon": -112.003219
+                    },
+                    "address": "61 Tommy Thompson Rd,Salt Lake City,,US",
+                    "url": "/book/expedia?id=175715%3A425931&lang=en-US&alt=hcom*175715%3A425931'bookingdotcom*245578*%2Fhotel%2Fus%2Fmicrotel-inn-suites-salt-lake-city.html"
+                }
+            ]
+        },
+        "skip": false,
+        "expander": [
+            {
+                "position": 19,
+                "route": [
+                    {
+                        "duration": 927.0060000000001,
+                        "distance": 16425,
+                        "coordinates": {
+                            "lat": 40.79142677512476,
+                            "lon": -111.97857856750488
+                        },
+                        "polyline": "6kayxlA`j{qtE_T`AoA|@}@~BaHr]YpHn@|VOzBy@nCmApAeBZg~@jF{Df@aK|BwUlAuFWyGEkHZiCzCcP~@bA`^fCtBnA`f@`Bnl@}AjChAbe@wV`@a~Ch@_fARkb@_AkkGg@yxGzA{qAr@y^cAaNuB{MsEaLkGiQkNgRk[mKiW_G_W{CiXk@aOMiOGyvI`@oShAyR~@sRTgRMsQm@mQyAuUe@oJSwJEatOUq_NUsbIIqk@Cai@Owg@y@a~Cl{@aDt`@iKzy@gQlr@gMpl@uBvgEyMzDC|hFlLd~B`B`uAe@lxBkA~sDyAz~CLndEyF``Eq@|\\S~~Jn@`iGtC`RX~|BvLvh@fDzXjB~TzBrNjCzQ`FfPxFzMdGvSrLdRnNnP`PdNzOvNbSrJdPbKtRjGvOfKb[bHxVxLrg@br@txCzVvcAfErZjGhi@jBpj@~DbvApLtvChAd`@hDnsAzEdb@jArk@zCvdCfAzpDn@xkEAjiSmAnrCaBn~@yBde@wDvr@aGpq@}Hxs@e[bqBsH``@{M`m@eQ~r@cR`n@}h@lcBcm@viBgn@xaCwVphAkTfu@kJ|ZcMvZgNbVgUnTgV~O_WrIsOdCaZp@ev@ZkKHmExCwY^?dnKVfbAC~CfCAbDlBjB|Ch@dB[~K",
+                        "tzoffset": -360,
+                        "tzname": "America/Denver",
+                        "tzabbr": "MDT"
+                    }
+                ]
+            }
+        ],
+        "trip": {
+            "id": "6835a9ca6c6cbb1083d20936"
+        },
+        "nomad": {
+            "id": "6835a7a46c6cbb1083d20794"
+        },
+        "tzoffset": -360,
+        "tzname": "America/Denver",
+        "tzabbr": "MDT",
+        "id": "685e98621da8971c9c73bb2c",
+        "uri": "/api/my/trip/6835a9ca6c6cbb1083d20936/step/685e98621da8971c9c73bb2c"
+    }
+]
