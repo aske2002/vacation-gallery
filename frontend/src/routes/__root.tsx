@@ -2,10 +2,12 @@ import {
   createRootRouteWithContext,
   ErrorComponentProps,
   Outlet,
+  useNavigate,
 } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
-import { Api } from "@/api/synoApi";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useVacationAuth";
+import { UserMenu } from "@/components/auth/user-menu";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -15,8 +17,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 );
 
 function RootComponent() {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
+    <div className="bg-muted flex h-screen flex-col items-center justify-start p-6 md:p-10 overflow-y-auto">
+      {isAuthenticated && (
+        <div className="flex justify-start w-full mb-4 bg-neutral-700 rounded-2xl p-4">
+          <UserMenu />
+          <Button variant={"link"} onClick={() => navigate({ to: "/" })}>
+            Home
+          </Button>
+          {user?.role == "admin" && (
+            <Button variant={"link"} onClick={() => navigate({ to: "/admin" })}>
+              Admin
+            </Button>
+          )}
+        </div>
+      )}
       <Outlet />
     </div>
   );

@@ -1,19 +1,18 @@
-import { Address, AlbumItem } from "@/types/api";
+import { Photo } from "@common/types/photo";
 
-export function findCommonDenominatorAndBroader(items: AlbumItem[]): string[] {
-  const idSpecificityOrder: (keyof Address)[] = [
-    "district_id",
-    "city_id",
-    "county_id",
-    "state_id",
-    "country_id",
+export function findCommonDenominatorAndBroader(items: Photo[]): string[] {
+  const idSpecificityOrder: (keyof Photo)[] = [
+    "city",
+    "state",
+    "country",
+    "landmark",
   ];
 
   for (let i = 0; i < idSpecificityOrder.length; i++) {
     const key = idSpecificityOrder[i];
 
     const keyValues = items.map(
-      (item) => item.additional.address?.[key]
+      (item) => item?.[key]
     );
 
     if (
@@ -26,7 +25,7 @@ export function findCommonDenominatorAndBroader(items: AlbumItem[]): string[] {
       for (let j = i; j < idSpecificityOrder.length; j++) {
         const field = idSpecificityOrder[j];
         const values = items.map(
-          (item) => item.additional.address?.[field]
+          (item) => item?.[field]
         );
 
         if (

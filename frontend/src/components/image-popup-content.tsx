@@ -1,15 +1,14 @@
-import { Api } from "@/api/synoApi";
-import { AlbumItem } from "@/types/api";
 import { Feature, Point } from "geojson";
 import { useMemo } from "react";
 import LoadingImage from "./loading-image";
 import { InfoWindow } from "@vis.gl/react-google-maps";
-import { findCommonDenominatorAndBroader } from "@/lib/extract-common-location";
+import { api } from "@/api/api";
+import { Photo } from "@common/types/photo";
 
 interface ImageWindowContent {
-  items: Feature<Point, AlbumItem>[];
+  items: Feature<Point, Photo>[];
   anchor: google.maps.marker.AdvancedMarkerElement;
-  onClickPhoto?: (item: AlbumItem) => void;
+  onClickPhoto?: (item: Photo) => void;
   onClose?: () => void;
 }
 
@@ -20,9 +19,10 @@ export default function ImagePopupContent({
   onClose,
 }: ImageWindowContent) {
   const title = useMemo(() => {
-    return findCommonDenominatorAndBroader(items.map((i) => i.properties)).join(
-      ", "
-    );
+    // return findCommonDenominatorAndBroader(items.map((i) => i.properties)).join(
+    //   ", "
+    // );
+    return "Coming soon"
   }, [items]);
 
   return (
@@ -51,22 +51,18 @@ export default function ImagePopupContent({
 }
 
 interface ImagePopupItemProps {
-  item: AlbumItem;
+  item: Photo;
   onClick?: () => void;
 }
 
 function ImagePopupItem({ item, onClick: onSelect }: ImagePopupItemProps) {
-  const url = useMemo(() => {
-    return Api.getThumnailUrl(item, "sm");
-  }, [item]);
-
   return (
     <LoadingImage
       key={item.id}
-      src={url}
+      src={item}
       onClick={() => onSelect?.()}
-      width={item.additional.resolution.width}
-      height={item.additional.resolution.height}
+      width={item.width}
+      height={item.height}
       className={
         "mb-4 break-inside-avoid w-full rounded-md shadow min-h-32 cursor-pointer hover:opacity-80 transition-opacity"
       }

@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const trip_routes_1 = __importDefault(require("./trip-routes"));
 const photo_routes_1 = __importDefault(require("./photo-routes"));
+const auth_routes_1 = __importDefault(require("./auth-routes"));
 const database_1 = require("./database");
 const app = (0, express_1.default)();
 const PORT = 1798;
@@ -31,6 +32,7 @@ app.get("/api/health", (_req, res) => {
     });
 });
 // API routes
+app.use("/api/auth", auth_routes_1.default);
 app.use("/api", trip_routes_1.default);
 app.use("/api", photo_routes_1.default);
 // Error handling middleware

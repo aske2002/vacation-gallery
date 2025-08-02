@@ -2,34 +2,33 @@ import React, { Ref, useCallback, useEffect, useMemo } from "react";
 import Supercluster, { ClusterProperties, PointFeature } from "supercluster";
 import { useSupercluster } from "../../hooks/use-supercluster";
 import { Feature, FeatureCollection, Point } from "geojson";
-import { AlbumItem } from "@/types/api";
-import { Api } from "@/api/synoApi";
 import {
   AdvancedMarker,
   AdvancedMarkerAnchorPoint,
   useAdvancedMarkerRef,
 } from "@vis.gl/react-google-maps";
 import { Badge } from "../ui/badge";
+import { api } from "@/api/api";
+import { Photo } from "@common/types/photo";
 
 const clusterTranslation = 8;
 
 type ClusteredMarkersProps = {
-  geojson: FeatureCollection<Point, AlbumItem>;
+  geojson: FeatureCollection<Point, Photo>;
   setNumClusters: (n: number) => void;
   setInfowindowData: (
     data: {
       anchor: google.maps.marker.AdvancedMarkerElement;
-      features: Feature<Point, AlbumItem>[];
+      features: Feature<Point, Photo>[];
     } | null
   ) => void;
 };
 
-const superclusterOptions: Supercluster.Options<AlbumItem, ClusterProperties> =
-  {
-    extent: 256,
-    radius: 80,
-    maxZoom: 12,
-  };
+const superclusterOptions: Supercluster.Options<Photo, ClusterProperties> = {
+  extent: 256,
+  radius: 80,
+  maxZoom: 12,
+};
 
 export const ClusteredMarkers = ({
   geojson,
@@ -53,9 +52,10 @@ export const ClusteredMarkers = ({
 
   const handleMarkerClick = useCallback(
     (marker: google.maps.marker.AdvancedMarkerElement, featureId: string) => {
-      const feature = clusters.find(
-        (feat) => feat.id === featureId
-      ) as Feature<Point, AlbumItem>;
+      const feature = clusters.find((feat) => feat.id === featureId) as Feature<
+        Point,
+        Photo
+      >;
 
       setInfowindowData({ anchor: marker, features: [feature] });
     },
@@ -84,7 +84,7 @@ export const ClusteredMarkers = ({
           <PhotoMarker
             key={feature.id}
             featureId={feature.id as string}
-            photo={feature.properties as AlbumItem}
+            photo={feature.properties as Photo}
             onMarkerClick={handleMarkerClick}
           />
         );
@@ -94,7 +94,7 @@ export const ClusteredMarkers = ({
 };
 
 interface PhotoMarkerProps {
-  photo: AlbumItem;
+  photo: Photo;
   featureId: string;
   onMarkerClick?: (
     marker: google.maps.marker.AdvancedMarkerElement,
@@ -110,8 +110,8 @@ const PhotoMarker = ({ photo, onMarkerClick, featureId }: PhotoMarkerProps) => {
   );
   const position = useMemo(() => {
     return {
-      lat: photo.additional.gps?.latitude || 0,
-      lng: photo.additional.gps?.longitude || 0,
+      lat: photo.latitude || 0,
+      lng: photo.longitude || 0,
     };
   }, [photo]);
 
@@ -129,7 +129,7 @@ const PhotoMarker = ({ photo, onMarkerClick, featureId }: PhotoMarkerProps) => {
 };
 
 interface PhotoClusterMarkerProps {
-  photos: PointFeature<AlbumItem>[];
+  photos: PointFeature<Photo>[];
   position: google.maps.LatLngLiteral;
   clusterId: number;
   onMarkerClick?: (
@@ -191,10 +191,10 @@ const PhotoClusterMarker = ({
 };
 
 interface PhotoPinProps {
-  photo: AlbumItem;
+  photo: Photo;
   transform?: { x: number; y: number };
   zIndex?: number;
-  onClick?: (photo: AlbumItem) => void;
+  onClick?: (photo: Photo) => void;
 }
 
 const PhotoPin = React.forwardRef(
@@ -203,7 +203,7 @@ const PhotoPin = React.forwardRef(
     ref: Ref<HTMLDivElement>
   ) => {
     const url = useMemo(() => {
-      return Api.getThumnailUrl(photo, "sm");
+      return api.getThumbnailUrl(photo.filename);
     }, [photo]);
 
     return (

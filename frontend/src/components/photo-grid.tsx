@@ -1,12 +1,12 @@
-import { AlbumItem } from "@/types/api";
 import PhotoItem from "./photo-item";
 import { DefaultLoader } from "./default-loader";
+import { Photo } from "@common/types/photo";
 
 interface PhotoGridProps {
-  photos: AlbumItem[];
-  onClickPhoto: (photo: AlbumItem) => void;
-  onSelectionChange?: (selected: Set<number>) => void;
-  selectedPhotos?: Set<number>;
+  photos: Photo[];
+  onClickPhoto: (photo: Photo) => void;
+  onSelectionChange?: (selected: Set<string>) => void;
+  selectedPhotos?: Set<string>;
   loading?: boolean;
 }
 
@@ -15,9 +15,9 @@ export default function PhotoGrid({
   onClickPhoto,
   onSelectionChange,
   selectedPhotos,
-  loading,
+  loading
 }: PhotoGridProps) {
-  const selectPhoto = (id: number) => {
+  const selectPhoto = (id: string) => {
     const newSet = new Set(selectedPhotos);
     if (selectedPhotos && selectedPhotos.has(id)) {
       newSet.delete(id);
@@ -28,11 +28,15 @@ export default function PhotoGrid({
   };
 
   return (
-    <div className="mx-auto w-full">
-      <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4">
-        {loading && <DefaultLoader />}
-        {!loading &&
-          photos.map((photo) => (
+    <>
+      {loading && (
+        <div className="grow flex justify-center items-center">
+          <DefaultLoader />
+        </div>
+      )}
+      {!loading && (
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 grow">
+          {photos.map((photo) => (
             <PhotoItem
               item={photo}
               onClick={onClickPhoto}
@@ -41,7 +45,8 @@ export default function PhotoGrid({
               onSelect={onSelectionChange ? selectPhoto : undefined}
             />
           ))}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

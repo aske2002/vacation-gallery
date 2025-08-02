@@ -9,6 +9,8 @@ import { routeTree } from "./routeTree.gen";
 import { DefaultLoader } from "./components/default-loader";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/sonner";
+import { AuthProvider } from "./hooks/useVacationAuth";
+import "leaflet/dist/leaflet.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,10 +42,15 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <APIProvider apiKey="AIzaSyC-vaTZTfS6CPY9bf9fugOEUAChgFLaVC0" onError={() => {}}>
+      <APIProvider
+        apiKey="AIzaSyC-vaTZTfS6CPY9bf9fugOEUAChgFLaVC0"
+        onError={() => {}}
+      >
         <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-          <Toaster />
+          <AuthProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+          </AuthProvider>
         </QueryClientProvider>
       </APIProvider>
     </StrictMode>

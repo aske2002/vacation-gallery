@@ -1,9 +1,9 @@
-// React Query Provider setup for Vacation Gallery
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { AuthProvider } from '../hooks/useVacationAuth';
 
-// Create a client
+// Create a query client instance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -24,10 +24,10 @@ interface ApiProviderProps {
 export function ApiProvider({ children }: ApiProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <AuthProvider>
+        {children}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
-
-export { queryClient };

@@ -1,6 +1,4 @@
 import useRoute from "@/hooks/use-route";
-import usePhotos from "@/hooks/usePhotos";
-import { AlbumItem } from "@/types/api";
 import { Feature, FeatureCollection, Point } from "geojson";
 import { useEffect, useMemo, useState } from "react";
 import { ClusteredMarkers } from "./markers/image-marker";
@@ -10,28 +8,27 @@ import Trip from "./trip";
 import { LocateFixed } from "lucide-react";
 import { Button } from "./ui/button";
 import normalizeCoordinates from "@/lib/normalize-coordinates";
+import { usePhotos } from "@/hooks/useVacationGalleryApi";
+import { Photo } from "@common/types/photo";
 
 interface MapComponentProps {
-  onClickPhoto?: (photo: AlbumItem) => void;
+  onClickPhoto?: (photo: Photo) => void;
 }
 
 export default function MapComponent({ onClickPhoto }: MapComponentProps) {
-  const { photos } = usePhotos();
+  const { data: photos } = usePhotos();
   const { stops, route } = useRoute();
   const map = useMap();
   const mapsLibrary = useMapsLibrary("core");
   const [tilesLoaded, setTilesLoaded] = useState(false);
 
-  const photosGeoJson = useMemo((): FeatureCollection<Point, AlbumItem> => {
+  const photosGeoJson = useMemo((): FeatureCollection<Point, Photo> => {
     return {
       features:
         photos
           ?.filter((photo) => {
             return (
-              photo.additional.gps?.latitude !== undefined &&
-              photo.additional.gps?.longitude !== undefined &&
-              photo.additional.gps?.latitude !== 0 &&
-              photo.additional.gps?.longitude !== 0
+              photo.latitude !== undefined && photo.longitude !== undefined
             );
           })
           .map((p) => {
@@ -40,12 +37,9 @@ export default function MapComponent({ onClickPhoto }: MapComponentProps) {
               type: "Feature",
               geometry: {
                 type: "Point",
-                coordinates: [
-                  p.additional.gps?.longitude!,
-                  p.additional.gps?.latitude!,
-                ],
+                coordinates: [p.longitude!, p.latitude!],
               },
-            } satisfies Feature<Point, AlbumItem>;
+            } satisfies Feature<Point, Photo>;
           }) || [],
 
       type: "FeatureCollection",
@@ -54,7 +48,7 @@ export default function MapComponent({ onClickPhoto }: MapComponentProps) {
 
   const [infowindowData, setInfowindowData] = useState<{
     anchor: google.maps.marker.AdvancedMarkerElement;
-    features: Feature<Point, AlbumItem>[];
+    features: Feature<Point, Photo>[];
   } | null>(null);
 
   const bounds = useMemo(() => {
@@ -63,7 +57,7 @@ export default function MapComponent({ onClickPhoto }: MapComponentProps) {
 
   const fitToContent = () => {
     if (!bounds) return;
-    
+
     normalizeCoordinates(
       ...[
         ...(stops?.map((s) => s.coordinates) || []),

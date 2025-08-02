@@ -69,6 +69,21 @@ class Database {
                     this.db.run(`CREATE INDEX IF NOT EXISTS idx_photos_trip_id ON photos (trip_id)`);
                     this.db.run(`CREATE INDEX IF NOT EXISTS idx_photos_coordinates ON photos (latitude, longitude)`);
                     this.db.run(`CREATE INDEX IF NOT EXISTS idx_photos_taken_at ON photos (taken_at)`);
+                    // Create users table
+                    this.db.run(`
+          CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'user',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        `);
+                    // Create user indexes
+                    this.db.run(`CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)`);
+                    this.db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)`);
                     resolve();
                 });
             });
@@ -275,6 +290,140 @@ class Database {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 this.db.all('SELECT * FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY taken_at DESC, created_at DESC', (err, rows) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(rows);
+                });
+            });
+        });
+    }
+    // User methods
+    createUser(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const now = new Date().toISOString();
+            const userWithTimestamps = Object.assign(Object.assign({}, user), { created_at: now, updated_at: now });
+            return new Promise((resolve, reject) => {
+                this.db.run(`INSERT INTO users (id, username, email, password_hash, role, created_at, updated_at) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`, [user.id, user.username, user.email, user.password_hash, user.role, now, now], function (err) {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(userWithTimestamps);
+                });
+            });
+        });
+    }
+    getUserById(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.db.get('SELECT * FROM users WHERE id = ?', [id], (err, row) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(row || null);
+                });
+            });
+        });
+    }
+    getUserByUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(row || null);
+                });
+            });
+        });
+    }
+    getUserByEmail(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(row || null);
+                });
+            });
+        });
+    }
+    getUserByUsernameOrEmail(username, email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, email], (err, row) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(row || null);
+                });
+            });
+        });
+    }
+    updateUser(id, updates) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const now = new Date().toISOString();
+            const fields = [];
+            const values = [];
+            if (updates.username !== undefined) {
+                fields.push('username = ?');
+                values.push(updates.username);
+            }
+            if (updates.email !== undefined) {
+                fields.push('email = ?');
+                values.push(updates.email);
+            }
+            fields.push('updated_at = ?');
+            values.push(now);
+            values.push(id);
+            return new Promise((resolve, reject) => {
+                this.db.run(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, values, function (err) {
+                    if (err)
+                        reject(err);
+                    else {
+                        // Get updated user
+                        exports.database.getUserById(id).then((user) => {
+                            if (user)
+                                resolve(user);
+                            else
+                                reject(new Error('User not found after update'));
+                        }).catch(reject);
+                    }
+                });
+            });
+        });
+    }
+    updateUserPassword(id, passwordHash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const now = new Date().toISOString();
+            return new Promise((resolve, reject) => {
+                this.db.run('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?', [passwordHash, now, id], function (err) {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(this.changes > 0);
+                });
+            });
+        });
+    }
+    deleteUser(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.db.run('DELETE FROM users WHERE id = ?', [id], function (err) {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(this.changes > 0);
+                });
+            });
+        });
+    }
+    getAllUsers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.db.all('SELECT * FROM users ORDER BY created_at DESC', (err, rows) => {
                     if (err)
                         reject(err);
                     else

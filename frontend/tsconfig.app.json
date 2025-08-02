@@ -5,6 +5,8 @@
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
+    "allowJs": true, // ✅ Allows importing .js files
+    "esModuleInterop": true, // ✅ Needed for default imports from CommonJS/ESM
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -21,8 +23,13 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    },
+      "@/*": ["./src/*"],
+      "@common/*": ["../common/src/*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "../common/src"],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../common/tsconfig.json" }
+  ]
 }

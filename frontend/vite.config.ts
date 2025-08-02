@@ -68,28 +68,17 @@ export default defineConfig({
   },
   server: {
     open: false,
-    proxy: {
-      "/synology": {
-        target: "https://photo.igloo.dk",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/synology/, ""),
-        secure: false,
-        configure: (proxy) => {
-          proxy.on("proxyReq", (proxyReq, req) => {
-            console.log("Proxying:", req.method, req.url);
-          });
-          proxy.on("proxyRes", (proxyRes, req) => {
-            console.log("Target responded:", proxyRes.statusCode, req.url);
-          });
-        },
-      },
-    },
   },
   envDir: searchForWorkspaceRoot(__dirname),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@common": path.resolve(__dirname, "../common/src")
     },
     preserveSymlinks: false,
+  },
+  worker: {
+    format: 'es',
+    plugins: () => [wasm()]
   },
 });
