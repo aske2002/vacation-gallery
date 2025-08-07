@@ -11,3 +11,10 @@ services:
       - "3000:80"
     depends_on:
       - backend
+  osrm:
+    image: osrm/osrm-backend
+    command: osrm-routed /data/your-map.osrm
+    volumes:
+      - ./osrm-data:/data
+    ports:
+      - "5000:5000"

@@ -1,16 +1,16 @@
 import useRoute from "@/hooks/use-route";
 import { Feature, FeatureCollection, Point } from "geojson";
 import { useEffect, useMemo, useState } from "react";
-import { ClusteredMarkers } from "./markers/image-marker";
-import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import ImagePopupContent from "./image-popup-content";
-import Trip from "./trip";
+import { ClusteredMarkersOSM } from "./osm/markers/image-marker-osm";
+import ImagePopupContentOSM from "./osm/image-popup-content-osm";
+import TripOSM from "./osm/trip-osm";
 import { LocateFixed } from "lucide-react";
 import { Button } from "./ui/button";
-import normalizeCoordinates from "@/lib/normalize-coordinates";
 import { usePhotos } from "@/hooks/useVacationGalleryApi";
 import { Photo } from "@common/types/photo";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import L from "leaflet";
+import { OpenStreetMap } from "./openstreetmap";
 
 interface MapComponentOSMProps {
   onClickPhoto?: (photo: Photo) => void;
@@ -21,8 +21,6 @@ export default function MapComponentOSM({
 }: MapComponentOSMProps) {
   const { data: photos } = usePhotos();
   const { stops, route } = useRoute();
-  const map = useMap();
-  const mapsLibrary = useMapsLibrary("core");
   const [tilesLoaded, setTilesLoaded] = useState(false);
 
   const photosGeoJson = useMemo((): FeatureCollection<Point, Photo> => {
@@ -30,9 +28,7 @@ export default function MapComponentOSM({
       features:
         photos
           ?.filter((photo) => {
-            return (
-              photo.latitude !== undefined && photo.longitude !== undefined
-            );
+            return !!photo.latitude && !!photo.longitude;
           })
           .map((p) => {
             return {
@@ -50,65 +46,81 @@ export default function MapComponentOSM({
   }, [photos]);
 
   const [infowindowData, setInfowindowData] = useState<{
-    anchor: google.maps.marker.AdvancedMarkerElement;
+    position: [number, number];
     features: Feature<Point, Photo>[];
   } | null>(null);
 
-  const bounds = useMemo(() => {
-    return mapsLibrary ? new mapsLibrary.LatLngBounds() : undefined;
-  }, [mapsLibrary]);
+  // Component to handle map instance and fit bounds
+  function MapController() {
+    const map = useMap();
 
-  const fitToContent = () => {
-    if (!bounds) return;
+    const fitToContent = () => {
+      if (!map) return;
 
-    normalizeCoordinates(
-      ...[
-        ...(stops?.map((s) => s.coordinates) || []),
-        ...photosGeoJson.features.map((f) => f.geometry.coordinates),
-      ]
-    ).forEach((c) => bounds.extend(c));
+      const coordinates = [
+        ...(stops?.map((s) => [s.coordinates.lat, s.coordinates.lon]) || []),
+        ...photosGeoJson.features.map((f) => [
+          f.geometry.coordinates[1],
+          f.geometry.coordinates[0],
+        ]),
+      ] as [number, number][];
 
-    map?.fitBounds(bounds);
-  };
+      if (coordinates.length > 0) {
+        const bounds = L.latLngBounds(coordinates);
+        map.fitBounds(bounds, { padding: [20, 20] });
+      }
+    };
 
-  useEffect(fitToContent, [stops, photosGeoJson, bounds, tilesLoaded]);
+    useEffect(() => {
+      if (tilesLoaded) {
+        fitToContent();
+      }
+    }, [stops, photosGeoJson, tilesLoaded]);
+
+    // Expose fitToContent to parent component
+    useEffect(() => {
+      (window as any).osmMapFitToContent = fitToContent;
+    }, []);
+
+    return null;
+  }
 
   return (
     <div className="w-full h-full relative">
-      {/* <Map
-        gestureHandling={"greedy"}
-        disableDefaultUI
-        defaultZoom={3}
-        onTilesLoaded={() => setTilesLoaded(true)}
-        defaultCenter={bounds?.getCenter().toJSON() || { lat: 0, lng: 0 }}
-        mapId={"6eb07290b335e56bf609226c"}
-        className="w-full h-full"
+      <OpenStreetMap
+        className="h-full w-full z-0"
+        center={[51.505, -0.09]}
+        zoom={13}
+        zoomControl={false}
+        whenReady={() => setTilesLoaded(true)}
       >
-        <ClusteredMarkers
+        {stops && <TripOSM steps={stops} route={route} />}
+
+        <MapController />
+        <ClusteredMarkersOSM
           geojson={photosGeoJson}
           setInfowindowData={setInfowindowData}
           setNumClusters={() => {}}
         />
         {infowindowData && (
-          <ImagePopupContent
-            anchor={infowindowData.anchor}
+          <ImagePopupContentOSM
+            position={infowindowData.position}
             items={infowindowData.features}
             onClose={() => setInfowindowData(null)}
             onClickPhoto={onClickPhoto}
+            isOpen={true}
           />
         )}
-        {stops && <Trip steps={stops} route={route} />}
-      </Map> */}
-      <MapContainer className="h-full w-full" center={[51.505, -0.09]} zoom={13}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-      </MapContainer>
+      </OpenStreetMap>
       <Button
         size={"icon"}
         variant={"secondary"}
-        onClick={fitToContent}
+        onClick={() => {
+          // Trigger a re-fit by calling the exposed function
+          if ((window as any).osmMapFitToContent) {
+            (window as any).osmMapFitToContent();
+          }
+        }}
         className="absolute right-2 top-2"
       >
         <LocateFixed />

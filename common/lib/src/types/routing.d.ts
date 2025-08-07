@@ -1,0 +1,110 @@
+export interface Coordinate {
+    latitude: number;
+    longitude: number;
+}
+export interface RouteRequest {
+    coordinates: Coordinate[];
+    profile?: 'driving-car' | 'driving-hgv' | 'cycling-regular' | 'cycling-road' | 'cycling-mountain' | 'cycling-electric' | 'foot-walking' | 'foot-hiking' | 'wheelchair';
+    format?: 'json' | 'geojson';
+    units?: 'km' | 'm';
+    language?: string;
+    geometry?: boolean;
+    instructions?: boolean;
+    elevation?: boolean;
+    extra_info?: string[];
+    optimized?: boolean;
+}
+export interface RouteResponse {
+    routes: Route[];
+    bbox?: number[];
+    metadata?: any;
+}
+export interface Route {
+    summary: {
+        distance: number;
+        duration: number;
+    };
+    geometry?: any;
+    segments?: RouteSegment[];
+    bbox?: number[];
+    way_points?: number[];
+}
+export interface RouteSegment {
+    distance: number;
+    duration: number;
+    steps?: RouteStep[];
+}
+export interface RouteStep {
+    distance: number;
+    duration: number;
+    type: number;
+    instruction: string;
+    name?: string;
+    way_points?: number[];
+}
+export interface DirectionsRequest {
+    start: Coordinate;
+    end: Coordinate;
+    profile?: RouteRequest['profile'];
+    alternatives?: boolean;
+    avoid_features?: string[];
+    avoid_borders?: 'all' | 'controlled' | 'none';
+    avoid_countries?: string[];
+}
+export interface IsochroneRequest {
+    locations: Coordinate[];
+    range: number[];
+    range_type?: 'time' | 'distance';
+    profile?: RouteRequest['profile'];
+    units?: 'km' | 'm';
+    location_type?: 'start' | 'destination';
+    smoothing?: number;
+    area_units?: 'km' | 'm';
+    attributes?: string[];
+}
+export interface IsochroneResponse {
+    type: 'FeatureCollection';
+    features: IsochroneFeature[];
+    bbox?: number[];
+    metadata?: any;
+}
+export interface IsochroneFeature {
+    type: 'Feature';
+    properties: {
+        group_index: number;
+        value: number;
+        center: number[];
+    };
+    geometry: {
+        type: 'Polygon';
+        coordinates: number[][][];
+    };
+}
+export interface MatrixRequest {
+    locations: Coordinate[];
+    profile?: RouteRequest['profile'];
+    sources?: number[];
+    destinations?: number[];
+    metrics?: ('distance' | 'duration')[];
+    resolve_locations?: boolean;
+    units?: 'km' | 'm';
+}
+export interface MatrixResponse {
+    distances?: number[][];
+    durations?: number[][];
+    destinations?: any[];
+    sources?: any[];
+    metadata?: any;
+}
+export interface TravelTimeResponse {
+    distance: number;
+    duration: number;
+}
+export interface HealthResponse {
+    service: string;
+    configured: boolean;
+    message: string;
+}
+export interface ProfilesResponse {
+    profiles: string[];
+}

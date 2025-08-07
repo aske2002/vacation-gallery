@@ -12,7 +12,7 @@ import { Toaster } from "./components/ui/sonner";
 import { AuthProvider } from "./hooks/useVacationAuth";
 import "leaflet/dist/leaflet.css";
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 0,

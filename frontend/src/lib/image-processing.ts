@@ -103,9 +103,6 @@ export async function updateGPSInFile(
       type: file.type,
       lastModified: file.lastModified,
     });
-    console.log(updatedFile);
-
-    console.log(`Updated GPS data in ${file.name}: ${latitude}, ${longitude}`);
     return updatedFile;
   } catch (error) {
     console.error("Failed to update GPS data in file:", error);
@@ -134,7 +131,6 @@ export async function convertDngToJpeg(file: File): Promise<File | null> {
       );
       resolve(jpegFile);
     } catch (error) {
-      console.log(error);
       console.error("Failed to start DNG conversion:", error);
       resolve(null);
     }

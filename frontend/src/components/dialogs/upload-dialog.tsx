@@ -75,8 +75,6 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
     const filesWithMetadata: UploadFile[] = await Promise.all(
       fileList.map(async (originalFile, index) => {
         const metadata = await extractExifData(originalFile);
-        console.log(metadata);
-
         // Resize image if it's a displayable image
         let processedFile = originalFile;
         let isResized = false;

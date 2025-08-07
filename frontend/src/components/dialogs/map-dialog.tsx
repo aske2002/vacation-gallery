@@ -1,4 +1,12 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import MapComponentOSM from "../map-component-osm";
+import { Button } from "../ui/button";
+import { XIcon } from "lucide-react";
 
 interface MapDialogProps {
   open: boolean;
@@ -8,12 +16,12 @@ interface MapDialogProps {
   title?: string;
 }
 
-export default function MapDialog({ 
-  open, 
-  onClose, 
-  onOpenChange, 
-  onClickPhoto, 
-  title 
+export default function MapDialog({
+  open,
+  onClose,
+  onOpenChange,
+  onClickPhoto,
+  title,
 }: MapDialogProps) {
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
@@ -24,13 +32,21 @@ export default function MapDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>{title || "Map"}</DialogTitle>
-        </DialogHeader>
-        <div className="h-96 bg-muted rounded-lg flex items-center justify-center">
-          <p className="text-muted-foreground">Map component not implemented</p>
-        </div>
+      <DialogContent
+        className="w-full p-0 max-w-full! max-h-full! h-full"
+        showCloseButton={false}
+      >
+        <MapComponentOSM onClickPhoto={onClickPhoto} />
+        <Button
+          size={"icon"}
+          variant={"default"}
+          onClick={() => {
+            onClose?.()
+          }}
+          className="absolute left-2 top-2"
+        >
+          <XIcon />
+        </Button>
       </DialogContent>
     </Dialog>
   );

@@ -6,6 +6,25 @@ import {
 } from "@common/types/request/update-photo-request";
 import { CreateTripRequest } from "@common/types/request/create-trip-request";
 import { Trip } from "@common/types/trip";
+import { Route, RouteStop, RouteWithStops } from "@common/types/route";
+import {
+  CreateRouteRequest,
+  UpdateRouteRequest,
+  UpdateRouteStop,
+} from "@common/types/request/create-route-request";
+import {
+  HealthResponse,
+  ProfilesResponse,
+  RouteRequest,
+  RouteResponse,
+  DirectionsRequest,
+  IsochroneRequest,
+  IsochroneResponse,
+  MatrixRequest,
+  MatrixResponse,
+  Coordinate,
+  TravelTimeResponse,
+} from "@common/types/routing";
 
 export interface DeletePhotosRequest {
   photoIds: string[];
@@ -184,6 +203,11 @@ export class Api {
     return response.data;
   };
 
+  getTripRoutes = async (tripId: string): Promise<Route[]> => {
+    const response = await this.client.get(`/trips/${tripId}/routes`);
+    return response.data;
+  };
+
   // Photo Methods
   getAllPhotos = async (): Promise<Photo[]> => {
     const response = await this.client.get("/photos");
@@ -210,6 +234,197 @@ export class Api {
       data: request,
     });
   };
+
+  // Route Methods
+  getAllRoutes = async (): Promise<Route[]> => {
+    const response = await this.client.get("/routes");
+    return response.data;
+  };
+
+  getRouteById = async (id: string): Promise<RouteWithStops> => {
+    const response = await this.client.get(`/routes/${id}`);
+    return response.data;
+  };
+
+  createRoute = async (data: CreateRouteRequest): Promise<RouteWithStops> => {
+    const response = await this.client.post("/routes", data);
+    return response.data;
+  };
+
+  updateRoute = async (
+    id: string,
+    data: UpdateRouteRequest
+  ): Promise<RouteWithStops> => {
+    const response = await this.client.put(`/routes/${id}`, data);
+    return response.data;
+  };
+
+  deleteRoute = async (id: string): Promise<void> => {
+    await this.client.delete(`/routes/${id}`);
+  };
+
+  getRouteStops = async (routeId: string): Promise<RouteStop[]> => {
+    const response = await this.client.get(`/routes/${routeId}/stops`);
+    return response.data;
+  };
+
+  createRouteStop = async (
+    routeId: string,
+    data: Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">
+  ): Promise<RouteWithStops> => {
+    const response = await this.client.post(`/routes/${routeId}/stops`, data);
+    return response.data;
+  };
+
+  updateRouteStop = async (
+    routeId: string,
+    stopId: string,
+    data: UpdateRouteStop
+  ): Promise<RouteWithStops> => {
+    const response = await this.client.put(
+      `/routes/${routeId}/stops/${stopId}`,
+      data
+    );
+    return response.data;
+  };
+
+  deleteRouteStop = async (
+    routeId: string,
+    stopId: string
+  ): Promise<RouteWithStops> => {
+    const response = await this.client.delete(
+      `/routes/${routeId}/stops/${stopId}`
+    );
+    return response.data;
+  };
+
+  regenerateRoute = async (routeId: string): Promise<RouteWithStops> => {
+    const response = await this.client.post(`/routes/${routeId}/regenerate`);
+    return response.data;
+  };
+
+  // Route Utility Methods
+
+  /**
+   * Format duration in seconds to human readable format
+   */
+  formatRouteDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  }
+
+  /**
+   * Format distance in meters to human readable format
+   */
+  formatRouteDistance(meters: number): string {
+    if (meters >= 1000) {
+      const km = (meters / 1000).toFixed(1);
+      return `${km} km`;
+    }
+    return `${Math.round(meters)} m`;
+  }
+
+  /**
+   * Get route summary statistics
+   */
+  getRouteSummary(route: RouteWithStops): {
+    stopCount: number;
+    distance: string;
+    duration: string;
+    profile: string;
+  } {
+    return {
+      stopCount: route.stops.length,
+      distance: route.total_distance
+        ? this.formatRouteDistance(route.total_distance)
+        : "Unknown",
+      duration: route.total_duration
+        ? this.formatRouteDuration(route.total_duration)
+        : "Unknown",
+      profile: route.profile,
+    };
+  }
+
+  /**
+   * Validate route data before submission
+   */
+  validateRoute(data: CreateRouteRequest): {
+    isValid: boolean;
+    errors: string[];
+  } {
+    const errors: string[] = [];
+
+    if (!data.title.trim()) {
+      errors.push("Route title is required");
+    }
+
+    if (!data.trip_id) {
+      errors.push("Trip ID is required");
+    }
+
+    if (data.stops.length < 2) {
+      errors.push("At least 2 stops are required");
+    }
+
+    data.stops.forEach((stop, index) => {
+      if (!stop.title.trim()) {
+        errors.push(`Stop ${index + 1}: Title is required`);
+      }
+      if (stop.latitude < -90 || stop.latitude > 90) {
+        errors.push(
+          `Stop ${index + 1}: Invalid latitude (must be between -90 and 90)`
+        );
+      }
+      if (stop.longitude < -180 || stop.longitude > 180) {
+        errors.push(
+          `Stop ${index + 1}: Invalid longitude (must be between -180 and 180)`
+        );
+      }
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  /**
+   * Get coordinates from route stops
+   */
+  getRouteCoordinates(route: RouteWithStops): Coordinate[] {
+    return route.stops
+      .sort((a, b) => a.order_index - b.order_index)
+      .map((stop) => ({
+        latitude: stop.latitude,
+        longitude: stop.longitude,
+      }));
+  }
+
+  /**
+   * Calculate route bounds for map display
+   */
+  getRouteBounds(route: RouteWithStops): {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  } | null {
+    if (route.stops.length === 0) return null;
+
+    const coordinates = this.getRouteCoordinates(route);
+
+    return {
+      north: Math.max(...coordinates.map((c) => c.latitude)),
+      south: Math.min(...coordinates.map((c) => c.latitude)),
+      east: Math.max(...coordinates.map((c) => c.longitude)),
+      west: Math.min(...coordinates.map((c) => c.longitude)),
+    };
+  }
 
   // Upload Photos
   uploadPhotos = async (
@@ -356,6 +571,227 @@ export class Api {
       totalFileSize,
       averagePhotosPerTrip: Math.round(averagePhotosPerTrip * 100) / 100,
     };
+  }
+
+  // OpenRouteService Methods
+  /**
+   * Check if OpenRouteService is configured and available
+   */
+  async checkOpenRouteHealth(): Promise<HealthResponse> {
+    const response = await this.client.get("/openroute/health");
+    return response.data;
+  }
+
+  /**
+   * Get available transportation profiles
+   */
+  async getOpenRouteProfiles(): Promise<ProfilesResponse> {
+    const response = await this.client.get("/openroute/profiles");
+    return response.data;
+  }
+
+  /**
+   * Get directions between multiple points
+   */
+  async getDirections(request: RouteRequest): Promise<RouteResponse> {
+    const response = await this.client.post("/openroute/directions", request);
+    return response.data;
+  }
+
+  /**
+   * Get simple directions between two points
+   */
+  async getSimpleDirections(
+    request: DirectionsRequest
+  ): Promise<RouteResponse> {
+    const response = await this.client.post(
+      "/openroute/directions/simple",
+      request
+    );
+    return response.data;
+  }
+
+  /**
+   * Get isochrones (travel time/distance areas)
+   */
+  async getIsochrones(request: IsochroneRequest): Promise<IsochroneResponse> {
+    const response = await this.client.post("/openroute/isochrones", request);
+    return response.data;
+  }
+
+  /**
+   * Get distance/time matrix between multiple points
+   */
+  async getMatrix(request: MatrixRequest): Promise<MatrixResponse> {
+    const response = await this.client.post("/openroute/matrix", request);
+    return response.data;
+  }
+
+  /**
+   * Optimize route order for multiple waypoints
+   */
+  async optimizeRoute(
+    coordinates: Coordinate[],
+    profile?: RouteRequest["profile"]
+  ): Promise<RouteResponse> {
+    const response = await this.client.post("/openroute/optimize", {
+      coordinates,
+      profile: profile || "driving-car",
+    });
+    return response.data;
+  }
+
+  /**
+   * Get travel time between two points
+   */
+  async getTravelTime(
+    start: Coordinate,
+    end: Coordinate,
+    profile?: RouteRequest["profile"]
+  ): Promise<TravelTimeResponse> {
+    const response = await this.client.post("/openroute/travel-time", {
+      start,
+      end,
+      profile: profile || "driving-car",
+    });
+    return response.data;
+  }
+
+  // OpenRouteService Utility Methods
+
+  /**
+   * Format duration in seconds to human readable format
+   */
+  formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  }
+
+  /**
+   * Format distance in meters to human readable format
+   */
+  formatDistance(meters: number): string {
+    if (meters >= 1000) {
+      const km = (meters / 1000).toFixed(1);
+      return `${km} km`;
+    }
+    return `${Math.round(meters)} m`;
+  }
+
+  /**
+   * Calculate route between photos based on their GPS coordinates
+   */
+  async getPhotoRoute(
+    photos: Photo[],
+    profile?: RouteRequest["profile"]
+  ): Promise<RouteResponse> {
+    const coordinates = photos
+      .filter((photo) => photo.latitude && photo.longitude)
+      .map((photo) => ({
+        latitude: photo.latitude!,
+        longitude: photo.longitude!,
+      }));
+
+    if (coordinates.length < 2) {
+      throw new Error("At least 2 photos with GPS coordinates are required");
+    }
+
+    return await this.getDirections({
+      coordinates,
+      profile: profile || "driving-car",
+      geometry: true,
+      instructions: true,
+    });
+  }
+
+  /**
+   * Get travel times between all photos in a trip
+   */
+  async getPhotoTravelMatrix(
+    photos: Photo[],
+    profile?: RouteRequest["profile"]
+  ): Promise<MatrixResponse> {
+    const locations = photos
+      .filter((photo) => photo.latitude && photo.longitude)
+      .map((photo) => ({
+        latitude: photo.latitude!,
+        longitude: photo.longitude!,
+      }));
+
+    if (locations.length < 2) {
+      throw new Error("At least 2 photos with GPS coordinates are required");
+    }
+
+    return await this.getMatrix({
+      locations,
+      profile: profile || "driving-car",
+      metrics: ["distance", "duration"],
+    });
+  }
+
+  /**
+   * Find photos within a travel time/distance from a starting point
+   */
+  async getPhotosWithinRange(
+    startLocation: Coordinate,
+    rangeInSeconds: number,
+    photos: Photo[],
+    profile?: RouteRequest["profile"]
+  ): Promise<Array<{ photo: Photo; travelTime: number; distance: number }>> {
+    const photosWithCoordinates = photos.filter(
+      (photo) => photo.latitude && photo.longitude
+    );
+
+    if (photosWithCoordinates.length === 0) {
+      return [];
+    }
+
+    const locations = [
+      startLocation,
+      ...photosWithCoordinates.map((photo) => ({
+        latitude: photo.latitude!,
+        longitude: photo.longitude!,
+      })),
+    ];
+
+    const matrix = await this.getMatrix({
+      locations,
+      sources: [0], // Start location
+      destinations: Array.from(
+        { length: photosWithCoordinates.length },
+        (_, i) => i + 1
+      ),
+      profile: profile || "driving-car",
+      metrics: ["distance", "duration"],
+    });
+
+    if (!matrix.durations || !matrix.distances) {
+      throw new Error("Failed to get travel matrix");
+    }
+
+    const result = [];
+    const durations = matrix.durations[0]; // First (and only) source
+    const distances = matrix.distances[0];
+
+    for (let i = 0; i < photosWithCoordinates.length; i++) {
+      const travelTime = durations[i];
+      const distance = distances[i];
+
+      if (travelTime <= rangeInSeconds) {
+        result.push({
+          photo: photosWithCoordinates[i],
+          travelTime,
+          distance,
+        });
+      }
+    }
+
+    return result;
   }
 }
 

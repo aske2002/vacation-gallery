@@ -14,12 +14,21 @@ import {
   UploadPhotosRequest,
 } from "../api/api";
 import { Photo } from "@common/types/photo";
-import {
-  UploadPhotoRequest,
-  UpdatePhotoRequest,
-} from "@common/types/request/update-photo-request";
+import { UpdatePhotoRequest } from "@common/types/request/update-photo-request";
 import { CreateTripRequest } from "@common/types/request/create-trip-request";
 import { Trip } from "@common/types/trip";
+import { Route, RouteStop, RouteWithStops } from "@common/types/route";
+import {
+  CreateRouteRequest,
+  UpdateRouteRequest,
+  UpdateRouteStop,
+} from "@common/types/request/create-route-request";
+import { queryClient } from "@/main";
+
+type QueryWithOldData<T> = {
+  oldData: T | undefined;
+  data: T;
+};
 
 // Query Keys
 export const queryKeys = {
@@ -32,6 +41,169 @@ export const queryKeys = {
   tripsWithPhotoCounts: ["trips", "with-photo-counts"] as const,
   statistics: ["statistics"] as const,
   health: ["health"] as const,
+  routes: ["routes"] as const,
+  route: (id: string) => ["routes", id] as const,
+  tripRoutes: (tripId: string) => ["trips", tripId, "routes"] as const,
+  routeStops: (routeId: string) => ["routes", routeId, "stops"] as const,
+};
+
+const queryUpdaters = {
+  trip: (updatedTrip: Partial<Trip> & { id: string }) => {
+    queryClient.setQueryData(
+      queryKeys.trip(updatedTrip.id),
+      (oldTrip: Trip | undefined) => ({
+        ...oldTrip,
+        ...updatedTrip,
+      })
+    );
+    queryClient.setQueryData(
+      queryKeys.trips,
+      (oldTrips: Trip[] | undefined) => {
+        return oldTrips?.map((trip) =>
+          trip.id === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
+        );
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.tripsWithPhotoCounts,
+      (oldTrips: TripWithPhotoCount[] | undefined) => {
+        return oldTrips?.map((trip) =>
+          trip.id === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
+        );
+      }
+    );
+  },
+  route: (updatedRoute: Partial<Route> & { trip_id: string; id: string }) => {
+    queryClient.setQueryData(
+      queryKeys.route(updatedRoute.id),
+      (oldRoute: RouteWithStops | undefined) => ({
+        ...oldRoute,
+        ...updatedRoute,
+      })
+    );
+    queryClient.setQueryData(
+      queryKeys.tripRoutes(updatedRoute.trip_id),
+      (oldRoutes: Route[] | undefined) => {
+        return oldRoutes?.find((r) => r.id == updatedRoute.id)
+          ? oldRoutes?.map((route) =>
+              route.id === updatedRoute.id
+                ? { ...route, ...updatedRoute }
+                : route
+            )
+          : [...(oldRoutes || []), updatedRoute];
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.routes,
+      (oldRoutes: Route[] | undefined) => {
+        return oldRoutes?.find((r) => r.id === updatedRoute.id)
+          ? oldRoutes?.map((route) =>
+              route.id === updatedRoute.id
+                ? { ...route, ...updatedRoute }
+                : route
+            )
+          : [...(oldRoutes || []), updatedRoute];
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.routeStops(updatedRoute.id),
+      (oldStops: RouteStop[] | undefined) => {
+        return oldStops?.map((stop) =>
+          stop.route_id === updatedRoute.id
+            ? { ...stop, route_id: updatedRoute.id }
+            : stop
+        );
+      }
+    );
+  },
+  routeStop: (
+    updatedStop: Partial<RouteStop> & { route_id: string; id: string }
+  ) => {
+    queryClient.setQueryData(
+      queryKeys.routeStops(updatedStop.route_id),
+      (oldStops: RouteStop[] | undefined) => {
+        return oldStops?.find((s) => s.id === updatedStop.id)
+          ? oldStops?.map((stop) =>
+              stop.id === updatedStop.id ? { ...stop, ...updatedStop } : stop
+            )
+          : [...(oldStops || []), updatedStop];
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.route(updatedStop.route_id),
+      (oldRoute: RouteWithStops | undefined) => {
+        if (!oldRoute) return undefined;
+        return {
+          ...oldRoute,
+          stops: oldRoute.stops.find((s) => s.id === updatedStop.id)
+            ? oldRoute.stops.map((stop) =>
+                stop.id === updatedStop.id ? { ...stop, ...updatedStop } : stop
+              )
+            : [...(oldRoute.stops || []), updatedStop],
+        };
+      }
+    );
+  },
+};
+
+const queryDeleters = {
+  trip: (tripId: string) => {
+    queryClient.removeQueries({ queryKey: queryKeys.trip(tripId) });
+    queryClient.removeQueries({ queryKey: queryKeys.tripPhotos(tripId) });
+    queryClient.setQueryData(
+      queryKeys.trips,
+      (oldTrips: Trip[] | undefined) => {
+        return oldTrips?.filter((trip) => trip.id !== tripId);
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.tripsWithPhotoCounts,
+      (oldTrips: TripWithPhotoCount[] | undefined) => {
+        return oldTrips?.filter((trip) => trip.id !== tripId);
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.photos,
+      (oldPhotos: Photo[] | undefined) => {
+        return oldPhotos?.filter((photo) => photo.trip_id !== tripId);
+      }
+    );
+  },
+  route: (routeId: string) => {
+    queryClient.removeQueries({ queryKey: queryKeys.route(routeId) });
+    queryClient.removeQueries({ queryKey: queryKeys.routeStops(routeId) });
+    queryClient.setQueryData(
+      queryKeys.tripRoutes(routeId),
+      (oldRoutes: Route[] | undefined) => {
+        return oldRoutes?.filter((route) => route.id !== routeId);
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.routes,
+      (oldRoutes: Route[] | undefined) => {
+        return oldRoutes?.filter((route) => route.id !== routeId);
+      }
+    );
+  },
+  routeStop: (routeId: string, stopId: string) => {
+    queryClient.removeQueries({ queryKey: queryKeys.routeStops(routeId) });
+    queryClient.setQueryData(
+      queryKeys.route(routeId),
+      (oldRoute: RouteWithStops | undefined) => {
+        if (!oldRoute) return undefined;
+        return {
+          ...oldRoute,
+          stops: oldRoute.stops.filter((stop) => stop.id !== stopId),
+        };
+      }
+    );
+    queryClient.setQueryData(
+      queryKeys.routeStops(routeId),
+      (oldStops: RouteStop[] | undefined) => {
+        return oldStops?.filter((stop) => stop.id !== stopId);
+      }
+    );
+  },
 };
 
 // Trips Hooks
@@ -62,14 +234,7 @@ export function useCreateTrip(): UseMutationResult<
   return useMutation({
     mutationFn: (data: CreateTripRequest) => api.createTrip(data),
     onSuccess: (newTrip) => {
-      // Invalidate and refetch trips list
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.tripsWithPhotoCounts,
-      });
-
-      // Add the new trip to the cache
-      queryClient.setQueryData(queryKeys.trip(newTrip.id), newTrip);
+      queryUpdaters.trip(newTrip);
     },
   });
 }
@@ -79,20 +244,12 @@ export function useUpdateTrip(): UseMutationResult<
   Error,
   { id: string; data: UpdateTripRequest }
 > {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateTripRequest }) =>
       api.updateTrip(id, data),
     onSuccess: (updatedTrip) => {
       // Update the specific trip in cache
-      queryClient.setQueryData(queryKeys.trip(updatedTrip.id), updatedTrip);
-
-      // Invalidate trips list to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.tripsWithPhotoCounts,
-      });
+      queryUpdaters.trip(updatedTrip);
     },
   });
 }
@@ -103,16 +260,7 @@ export function useDeleteTrip(): UseMutationResult<void, Error, string> {
   return useMutation({
     mutationFn: (id: string) => api.deleteTrip(id),
     onSuccess: (_, tripId) => {
-      // Remove from cache
-      queryClient.removeQueries({ queryKey: queryKeys.trip(tripId) });
-      queryClient.removeQueries({ queryKey: queryKeys.tripPhotos(tripId) });
-
-      // Invalidate trips list
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.tripsWithPhotoCounts,
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.photos });
+      queryDeleters.trip(tripId);
     },
   });
 }
@@ -314,5 +462,131 @@ export function usePhotosByDateRange(
     queryKey: ["photos", "date-range", startDate, endDate],
     queryFn: () => api.getPhotosByDateRange(startDate!, endDate!),
     enabled: !!(startDate && endDate),
+  });
+}
+
+// Routes Hooks
+export function useRoutes(): UseQueryResult<Route[], Error> {
+  return useQuery({
+    queryKey: queryKeys.routes,
+    queryFn: () => api.getAllRoutes(),
+  });
+}
+
+export function useRoute(
+  id: string | null
+): UseQueryResult<RouteWithStops | undefined, Error> {
+  return useQuery({
+    queryKey: queryKeys.route(id!),
+    queryFn: () => api.getRouteById(id!),
+    enabled: !!id,
+  });
+}
+
+export function useTripRoutes(
+  tripId: string | null
+): UseQueryResult<Route[] | undefined, Error> {
+  return useQuery({
+    queryKey: queryKeys.tripRoutes(tripId!),
+    queryFn: () => api.getTripRoutes(tripId!),
+    enabled: !!tripId,
+  });
+}
+
+export function useRouteStops(
+  routeId: string | null
+): UseQueryResult<RouteStop[] | undefined, Error> {
+  return useQuery({
+    queryKey: queryKeys.routeStops(routeId!),
+    queryFn: () => api.getRouteStops(routeId!),
+    enabled: !!routeId,
+  });
+}
+
+export function useCreateRoute(): UseMutationResult<
+  RouteWithStops,
+  Error,
+  CreateRouteRequest
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateRouteRequest) => api.createRoute(data),
+    onSuccess: (newRoute) => {
+      queryUpdaters.route(newRoute);
+    },
+  });
+}
+
+export function useUpdateRoute(): UseMutationResult<
+  RouteWithStops,
+  Error,
+  { id: string; data: UpdateRouteRequest }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateRouteRequest }) =>
+      api.updateRoute(id, data),
+    onSuccess: (updatedRoute) => {
+      queryUpdaters.route(updatedRoute);
+    },
+  });
+}
+
+export function useDeleteRoute(): UseMutationResult<void, Error, string> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.deleteRoute(id),
+    onSuccess: (_, routeId) => {
+      queryDeleters.route(routeId);
+    },
+  });
+}
+
+export function useCreateRouteStop(): UseMutationResult<
+  RouteWithStops,
+  Error,
+  {
+    routeId: string;
+    data: Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">;
+  }
+> {
+  return useMutation({
+    mutationFn: async ({ routeId, data }) => {
+      return api.createRouteStop(routeId, data);
+    },
+    onSuccess: (route) => {
+      queryUpdaters.route(route);
+    },
+  });
+}
+
+export function useUpdateRouteStop(): UseMutationResult<
+  RouteWithStops,
+  Error,
+  { routeId: string; stopId: string; data: UpdateRouteStop }
+> {
+  return useMutation({
+    mutationFn: async ({ routeId, stopId, data }) => {
+      return api.updateRouteStop(routeId, stopId, data);
+    },
+    onSuccess: (updatedRoute) => {
+      queryUpdaters.route(updatedRoute);
+    },
+  });
+}
+
+export function useDeleteRouteStop(): UseMutationResult<
+  RouteWithStops,
+  Error,
+  { routeId: string; stopId: string }
+> {
+  return useMutation({
+    mutationFn: ({ routeId, stopId }) => api.deleteRouteStop(routeId, stopId),
+    onSuccess: (_, { routeId, stopId }) => {
+      queryDeleters.routeStop(routeId, stopId);
+    },
   });
 }

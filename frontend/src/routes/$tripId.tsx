@@ -11,10 +11,7 @@ import { Map } from "lucide-react";
 import { PhotoPreview } from "@/components/dialogs/photo-preview-dialog";
 import FAB from "@/components/ui/fab";
 import MapDialog from "@/components/dialogs/map-dialog";
-import MapComponent from "@/components/map-component";
 import {
-  usePhotos,
-  useTrip,
   useTripPhotos,
 } from "@/hooks/useVacationGalleryApi";
 import { api } from "@/api/api";

@@ -7,6 +7,7 @@ import { LoadingButton } from "@/components/loading-button";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { useDeletePhotos, usePhotos } from "@/hooks/useVacationGalleryApi";
 import { UploadDialog } from "@/components/dialogs/upload-dialog";
+import { RouteManager } from "@/components/route-manager";
 
 export const Route = createFileRoute("/admin/$tripId")({
   component: RouteComponent,
@@ -63,6 +64,7 @@ const AdminComponent = () => {
         tripId={tripId}
         onClose={() => setUploadPreview(null)}
       />
+      <RouteManager tripId={tripId} onBack={() => navigate({ to: "/admin" })} />
       <div className="flex items-center gap-4 z-10">
         <div className="flex items-center gap-2">
           <Button onClick={upload}>Upload</Button>

@@ -4830,6 +4830,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"idb@npm:^7.1.1":
+  version: 7.1.1
+  resolution: "idb@npm:7.1.1"
+  checksum: 10c0/72418e4397638797ee2089f97b45fc29f937b830bc0eb4126f4a9889ecf10320ceacf3a177fe5d7ffaf6b4fe38b20bbd210151549bfdc881db8081eed41c870d
+  languageName: node
+  linkType: hard
+
 "ignore@npm:^5.2.0":
   version: 5.3.2
   resolution: "ignore@npm:5.3.2"
@@ -5135,7 +5142,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"leaflet@npm:^1.9.4":
+"leaflet.offline@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "leaflet.offline@npm:3.1.0"
+  dependencies:
+    idb: "npm:^7.1.1"
+    leaflet: "npm:^1.6.0"
+  checksum: 10c0/c5a13d6570f2b8027e88e7f9dd3fc9dd4e5010ebef9c79cbd0184460d5b8f72d18d09180500ade4602998f1288d6453743214e3181543dff5aca14c5e42418ed
+  languageName: node
+  linkType: hard
+
+"leaflet@npm:^1.6.0, leaflet@npm:^1.9.4":
   version: 1.9.4
   resolution: "leaflet@npm:1.9.4"
   checksum: 10c0/f639441dbb7eb9ae3fcd29ffd7d3508f6c6106892441634b0232fafb9ffb1588b05a8244ec7085de2c98b5ed703894df246898477836cfd0ce5b96d4717b5ca1
@@ -7278,6 +7295,7 @@ __metadata:
     globals: "npm:^15.14.0"
     input-otp: "npm:^1.4.2"
     leaflet: "npm:^1.9.4"
+    leaflet.offline: "npm:^3.1.0"
     libraw-wasm: "npm:^1.1.2"
     lucide-react: "npm:^0.525.0"
     motion: "npm:^12.23.6"

@@ -3,21 +3,15 @@ import { ComponentProps, useEffect, useMemo, useState } from "react";
 import { DefaultLoader } from "./default-loader";
 import { Photo } from "@common/types/photo";
 import { api } from "@/api/api";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 
-type LoadingImageProps = Omit<
-  ComponentProps<"img">,
-  "onLoadStart" | "onLoad" | "onLoadStartCapture" | "onLoadCapture" | "src"
-> & {
-  onLoaded?: () => void;
+type LoadingImageProps = ComponentProps<"div"> & {
   src: Photo;
-  onLoadStarted?: () => void;
 };
 
 export default function LoadingImage({
-  onLoadStarted,
-  onLoaded,
   src,
+  className,
   ...rest
 }: LoadingImageProps) {
   const [loaded, setLoaded] = useState(false);
@@ -30,21 +24,32 @@ export default function LoadingImage({
     return api.getImageUrl(src.filename);
   }, [src.filename]);
 
-  useEffect(() => {
-    loaded && onLoaded?.();
-  }, [loaded, onLoaded]);
-
   return (
-    <div className="relative">
-      <img {...rest} src={fullSrc} onLoad={() => setLoaded(true)} />
+    <div className={cn("relative overflow-hidden", className)} {...rest}>
       <img
-        src={thumbSrc}
-        className="absolute object-cover"
-        onLoad={() => setThumbLoaded(true)}
+        width={src.width}
+        height={src.height}
+        className="object-cover h-auto"
+        src={fullSrc}
+        onLoad={() => setLoaded(true)}
       />
+      {!loaded && (
+        <img
+          src={thumbSrc}
+          width={src.width}
+          height={src.height}
+          className="absolute top-0 left-0 object-cover h-auto"
+          onLoad={() => setThumbLoaded(true)}
+        />
+      )}
       <AnimatePresence>
-        {!thumbLoaded && (
-          <div className="w-full absolute h-full top-0 left-0 flex justify-center items-center bg-gray-600 opacity-70">
+        {!loaded && (
+          <div
+            className={cn(
+              "w-full absolute h-full top-0 left-0 flex justify-center items-center bg-gray-600 transition-all opacity-100",
+              thumbLoaded && "opacity-30",
+            )}
+          >
             <DefaultLoader />
           </div>
         )}

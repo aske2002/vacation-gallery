@@ -83,8 +83,6 @@ export default function PhotoItem({
     return getMediumLocation(item);
   }, [item]);
 
-  console.log(value, isValid, isDirty);
-
   return (
     <Card
       onClick={() => !onSelect && onClick(item)}
@@ -94,14 +92,10 @@ export default function PhotoItem({
       }`}
     >
       <CardHeader className="p-0">
-        <div className="overflow-hidden rounded-t-lg">
+        <div className="overflow-hidden rounded-t-lg relative">
           <LoadingImage
             src={item}
-            onLoaded={() => setReady(true)}
-            onError={() => setReady(true)}
-            width={item.width}
-            height={item.height}
-            className={cn("shadow w-full h-auto", selected && "opacity-60")}
+            className={cn("w-full h-auto", selected && "opacity-60")}
             onClick={() => onSelect?.(item.id)}
           />
 

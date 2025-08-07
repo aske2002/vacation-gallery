@@ -5,14 +5,19 @@ import { v4 as uuidv4 } from "uuid";
 import { geocodingService, LocationInfo } from "./geocoding-service";
 import { Photo } from "../../common/src/types/photo";
 import { Trip } from "../../common/src/types/trip";
-import { Route, RouteStop, RouteWithStops } from "../../common/src/types/route";
+import {
+  Route,
+  RouteSegment,
+  RouteStop,
+  RouteWithStops,
+} from "../../common/src/types/route";
 import {
   Coordinate,
   openRouteService,
   RouteRequest,
   RouteResponse,
 } from "./openroute-service";
-import polyline from "@mapbox/polyline";
+import crypto from "crypto";
 
 export interface User {
   id: string;
@@ -117,9 +122,6 @@ class Database {
             title TEXT NOT NULL,
             description TEXT,
             profile TEXT NOT NULL DEFAULT 'driving-car',
-            total_distance INTEGER,
-            total_duration INTEGER,
-            geometry TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
@@ -164,6 +166,28 @@ class Database {
     );
     await this.db.run(
       `CREATE INDEX IF NOT EXISTS idx_route_stops_order ON route_stops (route_id, order_index)`
+    );
+
+    // Create route_segments table
+    await this.db.run(`
+  CREATE TABLE IF NOT EXISTS route_segments (
+    id TEXT PRIMARY KEY,
+    route_id TEXT NOT NULL,
+    start_stop_id TEXT NOT NULL,
+    end_stop_id TEXT NOT NULL,
+    distance INTEGER,
+    duration INTEGER,
+    geometry TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    coordinates_hash TEXT NOT NULL,
+    FOREIGN KEY (route_id) REFERENCES routes (id) ON DELETE CASCADE,
+    FOREIGN KEY (start_stop_id) REFERENCES route_stops (id) ON DELETE CASCADE,
+    FOREIGN KEY (end_stop_id) REFERENCES route_stops (id) ON DELETE CASCADE
+  )
+`);
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_route_segments_route_id ON route_segments (route_id)`
     );
   }
 
@@ -540,7 +564,6 @@ class Database {
     )) as any[];
     const routes = rows.map((row) => ({
       ...row,
-      geometry: row.geometry ? JSON.parse(row.geometry) : null,
     }));
     return routes as Route[];
   }
@@ -552,7 +575,6 @@ class Database {
     )) as any[];
     const routes = rows.map((row) => ({
       ...row,
-      geometry: row.geometry ? JSON.parse(row.geometry) : null,
     }));
     return routes as Route[];
   }
@@ -564,7 +586,6 @@ class Database {
     if (!row) throw new Error("Route could not be found");
     const route = {
       ...row,
-      geometry: row.geometry ? JSON.parse(row.geometry) : null,
     };
     return route as Route;
   }
@@ -584,65 +605,204 @@ class Database {
       [id]
     )) as RouteStop[];
 
+    const segmentRows = (await this.db.all(
+      "SELECT * FROM route_segments WHERE route_id = ?",
+      [id]
+    )) as any[];
+
+    const segments = segmentRows
+      .map((segment) => {
+        try {
+          return {
+            ...segment,
+            geometry: JSON.parse(segment.geometry),
+          };
+        } catch (e) {
+          console.error(
+            `Failed to parse geometry for segment ${segment.id}`,
+            e
+          );
+          return null;
+        }
+      })
+      .filter((s) => s !== null) as RouteSegment[];
+
     const route = {
       ...routeRow,
-      geometry: routeRow.geometry ? JSON.parse(routeRow.geometry) : null,
       stops: stopRows,
+      segments: segments,
     };
     return route as RouteWithStops;
   }
 
+  private async getSegmentDirections(
+    start: Coordinate,
+    end: Coordinate,
+    profile: RouteRequest["profile"]
+  ): Promise<RouteResponse["routes"][number]> {
+    if (!openRouteService.isConfigured()) {
+      throw new Error("OpenRouteService API key not configured");
+    }
+
+    const routeRequest: RouteRequest = {
+      coordinates: [start, end],
+      profile: profile,
+      geometry: true,
+      instructions: false,
+    };
+
+    const routeResponse = await openRouteService.getDirections(routeRequest);
+
+    if (routeResponse.routes && routeResponse.routes.length > 0) {
+      return routeResponse.routes[0];
+    } else {
+      throw new Error("No route found for the segment");
+    }
+  }
+
+  hashCoordinates(start: Coordinate, end: Coordinate): string {
+    const data = `${start.latitude},${start.longitude}:${end.latitude},${end.longitude}`;
+    return crypto.createHash("sha256").update(data).digest("hex");
+  }
+
   async regenerateRoutePath(
-    route: string | RouteWithStops | Route,
+    routeId: string,
     timestamp?: Date
-  ) {
-    const _route: RouteWithStops =
-      typeof route == "string"
-        ? await this.getRouteWithStops(route)
-        : "stops" in route
-        ? route
-        : {
-            ...route,
-            stops: await this.getRouteStops(route.id),
-          };
+  ): Promise<RouteWithStops> {
+    const {
+      segments: existingSegments,
+      stops,
+      ...route
+    } = await this.getRouteWithStops(routeId);
+    if (!route) {
+      throw new Error(`Route with ID ${routeId} not found`);
+    }
 
-    const directions =
-      _route.stops.length > 1
-        ? await this.getRouteDirections(_route.stops, _route.profile)
-        : null;
+    const segments: RouteSegment[] = [];
+    const now = timestamp?.toISOString() ?? new Date().toISOString();
 
-    _route.updated_at = timestamp?.toISOString() || new Date().toISOString();
-    _route.geometry = directions?.geometry;
-    _route.total_duration = directions?.summary.duration;
-    _route.total_distance = directions?.summary.distance;
-    await await this.db.run(
-      `UPDATE routes SET geometry = ?, total_duration = ?, total_distance = ?, profile = ?, updated_at = ?  WHERE id = ?`,
-      [
-        JSON.stringify(_route.geometry),
-        _route.total_duration,
-        _route.total_distance,
-        _route.profile,
-        _route.updated_at,
-        _route.id,
-      ]
+    if (stops.length < 2) {
+      await this.db.run("DELETE FROM route_segments WHERE route_id = ?", [
+        routeId,
+      ]);
+      await this.db.run(`UPDATE routes SET updated_at = ? WHERE id = ?`, [
+        now,
+        route.id,
+      ]);
+      return {
+        ...route,
+        stops,
+        segments: [],
+        updated_at: now,
+      };
+    }
+
+    const existingSegmentsMap = new Map(
+      existingSegments.map((s) => [s.start_stop_id, s])
     );
+    const newSegmentIds = new Set<string>();
 
-    return _route;
+    for (let i = 0; i < stops.length - 1; i++) {
+      const start = stops[i];
+      const end = stops[i + 1];
+      const currentHash = this.hashCoordinates(
+        { latitude: start.latitude, longitude: start.longitude },
+        { latitude: end.latitude, longitude: end.longitude }
+      );
+
+      const existingSegment = existingSegmentsMap.get(start.id);
+
+      if (
+        existingSegment &&
+        existingSegment.end_stop_id === end.id &&
+        existingSegment.coordinates_hash === currentHash
+      ) {
+        segments.push(existingSegment);
+        newSegmentIds.add(existingSegment.id);
+      } else {
+        try {
+          const segmentDirections = await this.getSegmentDirections(
+            { latitude: start.latitude, longitude: start.longitude },
+            { latitude: end.latitude, longitude: end.longitude },
+            route.profile
+          );
+
+          if (segmentDirections.geometry) {
+            const segmentId = uuidv4();
+            const segmentData: RouteSegment = {
+              id: segmentId,
+              route_id: route.id,
+              start_stop_id: start.id,
+              end_stop_id: end.id,
+              distance: segmentDirections.summary.distance,
+              duration: segmentDirections.summary.duration,
+              geometry: segmentDirections.geometry,
+              coordinates_hash: currentHash,
+              created_at: now,
+              updated_at: now,
+            };
+
+            await this.db.run(
+              `INSERT INTO route_segments 
+               (id, route_id, start_stop_id, end_stop_id, distance, duration, geometry, coordinates_hash, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                segmentId,
+                route.id,
+                start.id,
+                end.id,
+                segmentData.distance,
+                segmentData.duration,
+                JSON.stringify(segmentData.geometry),
+                currentHash,
+                now,
+                now,
+              ]
+            );
+            segments.push(segmentData);
+            newSegmentIds.add(segmentId);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to get directions for segment from ${start.title} to ${end.title}:`,
+            error
+          );
+        }
+      }
+    }
+
+    // Delete old segments that are no longer part of the route
+    const segmentsToDelete = existingSegments.filter(
+      (s) => !newSegmentIds.has(s.id)
+    );
+    if (segmentsToDelete.length > 0) {
+      const idsToDelete = segmentsToDelete.map((s) => s.id);
+      await this.db.run(
+        `DELETE FROM route_segments WHERE id IN (${idsToDelete
+          .map(() => "?")
+          .join(",")})`,
+        idsToDelete
+      );
+    }
+
+    // Update parent route's timestamp
+    await this.db.run(`UPDATE routes SET updated_at = ? WHERE id = ?`, [
+      now,
+      route.id,
+    ]);
+
+    return {
+      ...route,
+      updated_at: now,
+      stops,
+      segments,
+    };
   }
 
   async updateRoute(
     id: string,
     updates?: Partial<
-      Omit<
-        Route,
-        | "id"
-        | "trip_id"
-        | "created_at"
-        | "updated_at"
-        | "geometry"
-        | "total_distance"
-        | "total_duration"
-      >
+      Omit<Route, "id" | "trip_id" | "created_at" | "updated_at">
     >
   ) {
     const routeWithStops = await this.getRouteWithStops(id);
@@ -650,26 +810,12 @@ class Database {
       throw new Error(`Route with ID ${id} not found`);
     }
 
-    const combined: RouteWithStops = {
+    const combined = {
       ...routeWithStops,
       ...updates,
     };
 
-    await this.regenerateRoutePath(combined);
-
-    const updated: Partial<
-      Omit<
-        Route,
-        | "id"
-        | "trip_id"
-        | "created_at"
-        | "geometry"
-        | "total_distance"
-        | "total_duration"
-      > & {
-        geometry?: string;
-      }
-    > = {
+    const updated: Partial<Omit<Route, "id" | "trip_id" | "created_at">> = {
       updated_at: new Date().toISOString(),
       title: combined.title,
       description: combined.description,
@@ -684,39 +830,7 @@ class Database {
       ...values,
       id,
     ]);
-    return combined;
-  }
-
-  private async getRouteDirections<T extends Coordinate>(
-    coordinates: T[],
-    profile: RouteRequest["profile"]
-  ): Promise<RouteResponse["routes"][number] | null> {
-    if (!openRouteService.isConfigured()) {
-      throw new Error("OpenRouteService API key not configured");
-    }
-    const _coordinates = coordinates.map((c) => ({
-      latitude: c.latitude,
-      longitude: c.longitude,
-    }));
-
-    const routeRequest: RouteRequest = {
-      coordinates: _coordinates,
-      profile: profile,
-      geometry: true,
-      instructions: false,
-    };
-
-    const routeResponse = await openRouteService.getDirections(routeRequest);
-
-    if (routeResponse.routes && routeResponse.routes.length > 0) {
-      const routeInfo = routeResponse.routes[0];
-      if (!routeInfo) {
-        throw new Error("No route found in the response");
-      }
-      return routeInfo;
-    } else {
-      throw new Error("No route found for the given coordinates");
-    }
+    return await this.regenerateRoutePath(id);
   }
 
   async deleteRoute(id: string): Promise<boolean> {
@@ -779,7 +893,6 @@ class Database {
       updated_at: now,
     };
 
-    await this.regenerateRoutePath(newRoute);
     const stmt = await this.db.prepare(`
         INSERT INTO route_stops (id, route_id, title, description, latitude, longitude, order_index, location_name, city, state, country, country_code, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -801,7 +914,7 @@ class Database {
       finalStopData.updated_at,
     ]);
 
-    return newRoute;
+    return await this.regenerateRoutePath(routeId);
   }
 
   private async reorderAllRouteStops(
@@ -857,19 +970,10 @@ class Database {
   ): Promise<RouteWithStops> {
     const now = new Date().toISOString();
     const currentStop = await this.getRouteStopById(id);
-    const oldRoute = await this.getRouteWithStops(currentStop.route_id);
-    let updatedRoute: RouteWithStops = {
-      ...oldRoute,
-      stops: oldRoute.stops.map((s) =>
-        s.id === currentStop.id ? { ...currentStop, ...updates } : s
-      ),
-    };
 
     // Enhance updates with location information if coordinates are being updated
     let enhancedUpdates = { ...updates };
     if (updates.latitude || updates.longitude) {
-      console.log("Update");
-      updatedRoute = await this.regenerateRoutePath(updatedRoute);
       const lat = updates.latitude ?? currentStop.latitude;
       const lng = updates.longitude ?? currentStop.longitude;
       const locationInfo = await geocodingService.reverseGeocode(lat, lng);
@@ -885,28 +989,33 @@ class Database {
       }
     }
 
-    console.log("Updating route stop:", enhancedUpdates);
-
-    const fields = Object.keys(enhancedUpdates)
-      .map((key) => `${key} = ?`)
-      .join(", ");
-    const values = Object.values(enhancedUpdates);
-    await this.db.run(
-      `UPDATE route_stops SET ${fields}, updated_at = ? WHERE id = ?`,
-      [...values, now, id]
-    );
-
-    if (updates.order_index) {
-      updatedRoute.stops = await this.reorderAllRouteStops(
-        currentStop.route_id,
-        {
-          stopId: id,
-          newStopIndex: updates.order_index,
-        }
+    const updateFields = Object.keys(enhancedUpdates);
+    if (updateFields.length > 0) {
+      const fields = updateFields.map((key) => `${key} = ?`).join(", ");
+      const values = Object.values(enhancedUpdates);
+      await this.db.run(
+        `UPDATE route_stops SET ${fields}, updated_at = ? WHERE id = ?`,
+        [...values, now, id]
       );
     }
 
-    return updatedRoute;
+    const needsRegeneration =
+      updates.latitude !== undefined ||
+      updates.longitude !== undefined ||
+      updates.order_index !== undefined;
+
+    if (updates.order_index !== undefined) {
+      await this.reorderAllRouteStops(currentStop.route_id, {
+        stopId: id,
+        newStopIndex: updates.order_index,
+      });
+    }
+
+    if (needsRegeneration) {
+      return await this.regenerateRoutePath(currentStop.route_id);
+    }
+
+    return this.getRouteWithStops(currentStop.route_id);
   }
 
   async getRouteStopById(id: string): Promise<RouteStop> {
@@ -921,16 +1030,9 @@ class Database {
 
   async deleteRouteStop(id: string): Promise<RouteWithStops> {
     const routeStop = await this.getRouteStopById(id);
-    const routeWithStops = await this.getRouteWithStops(routeStop.route_id);
-    const route: RouteWithStops = {
-      ...routeWithStops,
-      stops: [...routeWithStops.stops.filter((s) => s.id != id)],
-    };
-    const newRoute = await this.regenerateRoutePath(route);
-
     await this.db.run("DELETE FROM route_stops WHERE id = ?", [id]);
-    await this.reorderAllRouteStops(route.id);
-    return newRoute;
+    await this.reorderAllRouteStops(routeStop.route_id);
+    return await this.regenerateRoutePath(routeStop.route_id);
   }
 
   async close(): Promise<void> {
