@@ -85,7 +85,6 @@ router.post(
   upload.array("photos", 100),
   async (req, res) => {
     try {
-      console.log(req);
       const { tripId } = req.params;
       const metadata = JSON.parse(
         req.body.metadata || ""

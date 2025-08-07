@@ -110,4 +110,20 @@ router.get("/trips/:id/photos", async (req, res) => {
   }
 });
 
+// Get routes for a specific trip
+router.get("/trips/:id/routes", async (req, res) => {
+  try {
+    const trip = await database.getTripById(req.params.id);
+    if (!trip) {
+      return res.status(404).json({ error: "Trip not found" });
+    }
+
+    const routes = await database.getRoutesByTripId(req.params.id);
+    res.json(routes);
+  } catch (error) {
+    console.error("Error fetching trip routes:", error);
+    res.status(500).json({ error: "Failed to fetch trip routes" });
+  }
+});
+
 export default router;

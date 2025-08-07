@@ -68,7 +68,6 @@ class GeocodingService {
       }
 
       const data: GeocodingResult = await response.json();
-      console.log(data)
       
       if (!data || !data.address) {
         console.log('No geocoding data found for coordinates');
@@ -85,7 +84,6 @@ class GeocodingService {
         landmark: this.extractLandmark(data)
       };
 
-      console.log('Extracted location info:', locationInfo);
       return locationInfo;
 
     } catch (error) {

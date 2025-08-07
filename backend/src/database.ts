@@ -1,8 +1,18 @@
 import sqlite3 from "sqlite3";
-import path from "path";
+import { open, Database as SqliteDatabase } from "sqlite";
+import path, { resolve } from "path";
+import { v4 as uuidv4 } from "uuid";
 import { geocodingService, LocationInfo } from "./geocoding-service";
 import { Photo } from "../../common/src/types/photo";
 import { Trip } from "../../common/src/types/trip";
+import { Route, RouteStop, RouteWithStops } from "../../common/src/types/route";
+import {
+  Coordinate,
+  openRouteService,
+  RouteRequest,
+  RouteResponse,
+} from "./openroute-service";
+import polyline from "@mapbox/polyline";
 
 export interface User {
   id: string;
@@ -15,19 +25,20 @@ export interface User {
 }
 
 class Database {
-  private db: sqlite3.Database;
+  private db: SqliteDatabase;
 
   constructor() {
     const dbPath = path.join(__dirname, "..", "data", "vacation_gallery.db");
-    this.db = new sqlite3.Database(dbPath);
+    this.db = new SqliteDatabase({
+      driver: sqlite3.Database,
+      filename: dbPath,
+    });
     this.init();
   }
 
   private async init() {
-    return new Promise<void>((resolve, reject) => {
-      this.db.serialize(() => {
-        // Create trips table
-        this.db.run(`
+    await this.db.open();
+    await this.db.run(`
           CREATE TABLE IF NOT EXISTS trips (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -39,8 +50,8 @@ class Database {
           )
         `);
 
-        // Create photos table
-        this.db.run(`
+    // Create photos table
+    await this.db.run(`
           CREATE TABLE IF NOT EXISTS photos (
             id TEXT PRIMARY KEY,
             trip_id TEXT NOT NULL,
@@ -74,33 +85,19 @@ class Database {
           )
         `);
 
-        // Add location columns if they don't exist (migration)
-        this.db.run(
-          `ALTER TABLE photos ADD COLUMN location_name TEXT`,
-          () => {}
-        );
-        this.db.run(`ALTER TABLE photos ADD COLUMN city TEXT`, () => {});
-        this.db.run(`ALTER TABLE photos ADD COLUMN state TEXT`, () => {});
-        this.db.run(`ALTER TABLE photos ADD COLUMN country TEXT`, () => {});
-        this.db.run(
-          `ALTER TABLE photos ADD COLUMN country_code TEXT`,
-          () => {}
-        );
-        this.db.run(`ALTER TABLE photos ADD COLUMN landmark TEXT`, () => {});
+    // Create indexes
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_photos_trip_id ON photos (trip_id)`
+    );
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_photos_coordinates ON photos (latitude, longitude)`
+    );
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_photos_taken_at ON photos (taken_at)`
+    );
 
-        // Create indexes
-        this.db.run(
-          `CREATE INDEX IF NOT EXISTS idx_photos_trip_id ON photos (trip_id)`
-        );
-        this.db.run(
-          `CREATE INDEX IF NOT EXISTS idx_photos_coordinates ON photos (latitude, longitude)`
-        );
-        this.db.run(
-          `CREATE INDEX IF NOT EXISTS idx_photos_taken_at ON photos (taken_at)`
-        );
-
-        // Create users table
-        this.db.run(`
+    // Create users table
+    await this.db.run(`
           CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             username TEXT NOT NULL UNIQUE,
@@ -112,17 +109,62 @@ class Database {
           )
         `);
 
-        // Create user indexes
-        this.db.run(
-          `CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)`
-        );
-        this.db.run(
-          `CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)`
-        );
+    // Create routes table
+    await this.db.run(`
+          CREATE TABLE IF NOT EXISTS routes (
+            id TEXT PRIMARY KEY,
+            trip_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            profile TEXT NOT NULL DEFAULT 'driving-car',
+            total_distance INTEGER,
+            total_duration INTEGER,
+            geometry TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+          )
+        `);
 
-        resolve();
-      });
-    });
+    // Create route_stops table
+    await this.db.run(`
+          CREATE TABLE IF NOT EXISTS route_stops (
+            id TEXT PRIMARY KEY,
+            route_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            order_index INTEGER NOT NULL,
+            location_name TEXT,
+            city TEXT,
+            state TEXT,
+            country TEXT,
+            country_code TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (route_id) REFERENCES routes (id) ON DELETE CASCADE
+          )
+        `);
+
+    // Create user indexes
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)`
+    );
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)`
+    );
+
+    // Create route indexes
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_routes_trip_id ON routes (trip_id)`
+    );
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_route_stops_route_id ON route_stops (route_id)`
+    );
+    await this.db.run(
+      `CREATE INDEX IF NOT EXISTS idx_route_stops_order ON route_stops (route_id, order_index)`
+    );
   }
 
   // Trip methods
@@ -136,51 +178,33 @@ class Database {
       updated_at: now,
     };
 
-    return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare(`
+    const stmt = await this.db.prepare(`
         INSERT INTO trips (id, name, description, start_date, end_date, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `);
 
-      stmt.run(
-        [
-          tripData.id,
-          tripData.name,
-          tripData.description,
-          tripData.start_date,
-          tripData.end_date,
-          tripData.created_at,
-          tripData.updated_at,
-        ],
-        function (err) {
-          if (err) reject(err);
-          else resolve(tripData);
-        }
-      );
-
-      stmt.finalize();
-    });
+    await stmt.run([
+      tripData.id,
+      tripData.name,
+      tripData.description,
+      tripData.start_date,
+      tripData.end_date,
+      tripData.created_at,
+      tripData.updated_at,
+    ]);
+    return tripData;
   }
 
   async getAllTrips(): Promise<Trip[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(
-        "SELECT * FROM trips ORDER BY created_at DESC",
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows as Trip[]);
-        }
-      );
-    });
+    return this.db.all(
+      "SELECT * FROM trips ORDER BY created_at DESC"
+    ) as Promise<Trip[]>;
   }
 
   async getTripById(id: string): Promise<Trip | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get("SELECT * FROM trips WHERE id = ?", [id], (err, row) => {
-        if (err) reject(err);
-        else resolve((row as Trip) || null);
-      });
-    });
+    return this.db.get("SELECT * FROM trips WHERE id = ?", [
+      id,
+    ]) as Promise<Trip>;
   }
 
   async updateTrip(
@@ -192,30 +216,17 @@ class Database {
       .map((key) => `${key} = ?`)
       .join(", ");
     const values = Object.values(updates);
-
-    return new Promise((resolve, reject) => {
-      this.db.run(
-        `UPDATE trips SET ${fields}, updated_at = ? WHERE id = ?`,
-        [...values, now, id],
-        function (err) {
-          if (err) reject(err);
-          else if (this.changes === 0) resolve(null);
-          else {
-            // Fetch the updated trip
-            database.getTripById(id).then(resolve).catch(reject);
-          }
-        }
-      );
-    });
+    const result = await this.db.run(
+      `UPDATE trips SET ${fields}, updated_at = ? WHERE id = ?`,
+      [...values, now, id]
+    );
+    return await this.getTripById(id);
   }
 
   async deleteTrip(id: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      this.db.run("DELETE FROM trips WHERE id = ?", [id], function (err) {
-        if (err) reject(err);
-        else resolve(this.changes > 0);
-      });
-    });
+    return this.db
+      .run("DELETE FROM trips WHERE id = ?", [id])
+      .then((r) => !!r.changes && r.changes > 0);
   }
 
   // Helper method to enhance photo with location information
@@ -267,9 +278,7 @@ class Database {
       created_at: now,
       updated_at: now,
     } as Photo;
-
-    return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare(`
+    const stmt = await this.db.prepare(`
         INSERT INTO photos (
           id, trip_id, filename, original_filename, title, description,
           latitude, longitude, altitude, location_name, city, state, country, country_code, landmark,
@@ -279,79 +288,56 @@ class Database {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      stmt.run(
-        [
-          photoData.id,
-          photoData.trip_id,
-          photoData.filename,
-          photoData.original_filename,
-          photoData.title,
-          photoData.description,
-          photoData.latitude,
-          photoData.longitude,
-          photoData.altitude,
-          photoData.location_name,
-          photoData.city,
-          photoData.state,
-          photoData.country,
-          photoData.country_code,
-          photoData.landmark,
-          photoData.taken_at,
-          photoData.camera_make,
-          photoData.camera_model,
-          photoData.iso,
-          photoData.aperture,
-          photoData.shutter_speed,
-          photoData.focal_length,
-          photoData.file_size,
-          photoData.mime_type,
-          photoData.width,
-          photoData.height,
-          photoData.created_at,
-          photoData.updated_at,
-        ],
-        function (err) {
-          if (err) reject(err);
-          else resolve(photoData);
-        }
-      );
-
-      stmt.finalize();
-    });
+    stmt.run([
+      photoData.id,
+      photoData.trip_id,
+      photoData.filename,
+      photoData.original_filename,
+      photoData.title,
+      photoData.description,
+      photoData.latitude,
+      photoData.longitude,
+      photoData.altitude,
+      photoData.location_name,
+      photoData.city,
+      photoData.state,
+      photoData.country,
+      photoData.country_code,
+      photoData.landmark,
+      photoData.taken_at,
+      photoData.camera_make,
+      photoData.camera_model,
+      photoData.iso,
+      photoData.aperture,
+      photoData.shutter_speed,
+      photoData.focal_length,
+      photoData.file_size,
+      photoData.mime_type,
+      photoData.width,
+      photoData.height,
+      photoData.created_at,
+      photoData.updated_at,
+    ]);
+    return photoData;
   }
 
   async getAllPhotos(): Promise<Photo[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(
-        "SELECT * FROM photos ORDER BY taken_at DESC, created_at DESC",
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows as Photo[]);
-        }
-      );
-    });
+    return this.db.all(
+      "SELECT * FROM photos ORDER BY taken_at DESC, created_at DESC"
+    );
   }
 
   async getPhotosByTripId(tripId: string): Promise<Photo[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(
-        "SELECT * FROM photos WHERE trip_id = ? ORDER BY taken_at DESC, created_at DESC",
-        [tripId],
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows as Photo[]);
-        }
-      );
-    });
+    return this.db.all(
+      "SELECT * FROM photos WHERE trip_id = ? ORDER BY taken_at DESC, created_at DESC",
+      [tripId]
+    );
   }
 
   async getPhotoById(id: string): Promise<Photo | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get("SELECT * FROM photos WHERE id = ?", [id], (err, row) => {
-        if (err) reject(err);
-        else resolve((row as Photo) || null);
-      });
-    });
+    return this.db
+      .get<Photo | null>("SELECT * FROM photos WHERE id = ?", [id])
+      .then((p) => p || null);
   }
 
   async updatePhoto(
@@ -368,29 +354,19 @@ class Database {
       .join(", ");
     const values = Object.values(enhancedUpdates);
 
-    return new Promise((resolve, reject) => {
-      this.db.run(
-        `UPDATE photos SET ${fields}, updated_at = ? WHERE id = ?`,
-        [...values, now, id],
-        function (err) {
-          if (err) reject(err);
-          else if (this.changes === 0) resolve(null);
-          else {
-            // Fetch the updated photo
-            database.getPhotoById(id).then(resolve).catch(reject);
-          }
-        }
-      );
-    });
+    return this.db
+      .run(`UPDATE photos SET ${fields}, updated_at = ? WHERE id = ?`, [
+        ...values,
+        now,
+        id,
+      ])
+      .then((r) => (r.changes === 0 ? null : database.getPhotoById(id)));
   }
 
   async deletePhoto(id: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      this.db.run("DELETE FROM photos WHERE id = ?", [id], function (err) {
-        if (err) reject(err);
-        else resolve(this.changes > 0);
-      });
-    });
+    return this.db
+      .run("DELETE FROM photos WHERE id = ?", [id])
+      .then((r) => !!r.changes && r.changes > 0);
   }
 
   async deletePhotos(
@@ -403,36 +379,20 @@ class Database {
     const successful: string[] = [];
     const failed: string[] = [];
 
-    // Use IN clause for bulk delete - more efficient
-    const placeholders = ids.map(() => "?").join(",");
-    const query = `DELETE FROM photos WHERE id IN (${placeholders})`;
-
-    return new Promise((resolve, reject) => {
-      this.db.run(query, ids, function (err) {
-        if (err) {
-          // If bulk delete fails, fall back to individual deletes
-          reject(err);
-        } else {
-          // All provided IDs were attempted to be deleted
-          // Since we can't easily determine which specific ones failed with IN clause,
-          // we'll assume all were successful if no error occurred
-          successful.push(...ids);
-          resolve({ successful, failed });
-        }
-      });
-    });
+    const result = await this.db.run(
+      `DELETE FROM photos WHERE id IN (${ids.map(() => "?").join(",")})`
+    );
+    successful.push(...ids);
+    return {
+      successful,
+      failed,
+    };
   }
 
   async getPhotosWithCoordinates(): Promise<Photo[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(
-        "SELECT * FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY taken_at DESC, created_at DESC",
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows as Photo[]);
-        }
-      );
-    });
+    return this.db.all(
+      "SELECT * FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY taken_at DESC, created_at DESC"
+    );
   }
 
   // User methods
@@ -441,77 +401,50 @@ class Database {
   ): Promise<User> {
     const now = new Date().toISOString();
     const userWithTimestamps = { ...user, created_at: now, updated_at: now };
-
-    return new Promise((resolve, reject) => {
-      this.db.run(
-        `INSERT INTO users (id, username, email, password_hash, role, created_at, updated_at) 
+    await this.db.run(
+      `INSERT INTO users (id, username, email, password_hash, role, created_at, updated_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          user.id,
-          user.username,
-          user.email,
-          user.password_hash,
-          user.role,
-          now,
-          now,
-        ],
-        function (err) {
-          if (err) reject(err);
-          else resolve(userWithTimestamps);
-        }
-      );
-    });
+      [
+        user.id,
+        user.username,
+        user.email,
+        user.password_hash,
+        user.role,
+        now,
+        now,
+      ]
+    );
+    return userWithTimestamps;
   }
 
   async getUserById(id: string): Promise<User | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get("SELECT * FROM users WHERE id = ?", [id], (err, row) => {
-        if (err) reject(err);
-        else resolve((row as User) || null);
-      });
-    });
+    return this.db
+      .get("SELECT * FROM users WHERE id = ?", [id])
+      .then((u) => u || null);
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get(
-        "SELECT * FROM users WHERE username = ?",
-        [username],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve((row as User) || null);
-        }
-      );
-    });
+    return this.db
+      .get("SELECT * FROM users WHERE username = ?", [username])
+      .then((u) => u || null);
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get(
-        "SELECT * FROM users WHERE email = ?",
-        [email],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve((row as User) || null);
-        }
-      );
-    });
+    return this.db
+      .get("SELECT * FROM users WHERE email = ?", [email])
+      .then((u) => u || null);
   }
 
   async getUserByUsernameOrEmail(
     username: string,
     email: string
   ): Promise<User | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get(
-        "SELECT * FROM users WHERE username = ? OR email = ?",
-        [username, email],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve((row as User) || null);
-        }
-      );
-    });
+    return this.db
+      .get("SELECT * FROM users WHERE username = ? OR email = ?", [
+        username,
+        email,
+      ])
+      .then((u) => u || null);
   }
 
   async updateUser(
@@ -534,70 +467,474 @@ class Database {
     fields.push("updated_at = ?");
     values.push(now);
     values.push(id);
-
-    return new Promise((resolve, reject) => {
-      this.db.run(
-        `UPDATE users SET ${fields.join(", ")} WHERE id = ?`,
-        values,
-        function (err) {
-          if (err) reject(err);
-          else {
-            // Get updated user
-            database
-              .getUserById(id)
-              .then((user) => {
-                if (user) resolve(user);
-                else reject(new Error("User not found after update"));
-              })
-              .catch(reject);
-          }
-        }
-      );
+    await this.db.run(
+      `UPDATE users SET ${fields.join(", ")} WHERE id = ?`,
+      values
+    );
+    return this.getUserById(id).then((user) => {
+      if (!user) throw new Error("User not found after update");
+      return user;
     });
   }
 
   async updateUserPassword(id: string, passwordHash: string): Promise<boolean> {
     const now = new Date().toISOString();
-    return new Promise((resolve, reject) => {
-      this.db.run(
-        "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?",
-        [passwordHash, now, id],
-        function (err) {
-          if (err) reject(err);
-          else resolve(this.changes > 0);
-        }
-      );
-    });
+    return await this.db
+      .run("UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?", [
+        passwordHash,
+        now,
+        id,
+      ])
+      .then((r) => !!r.changes && r.changes > 0);
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      this.db.run("DELETE FROM users WHERE id = ?", [id], function (err) {
-        if (err) reject(err);
-        else resolve(this.changes > 0);
-      });
-    });
+    const result = await this.db.run("DELETE FROM users WHERE id = ?", [id]);
+    return !!result.changes && result.changes > 0;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(
-        "SELECT * FROM users ORDER BY created_at DESC",
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows as User[]);
+    return this.db.all(
+      "SELECT * FROM users ORDER BY created_at DESC"
+    ) as Promise<User[]>;
+  }
+
+  // Route methods
+  async createRoute(
+    route: Omit<Route, "created_at" | "updated_at" | "geometry">,
+    stops: Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">[]
+  ): Promise<RouteWithStops> {
+    const now = new Date().toISOString();
+    const routeData = {
+      ...route,
+      created_at: now,
+      updated_at: now,
+    };
+
+    // Insert route
+    const stmt = await this.db.prepare(`
+      INSERT INTO routes (id, trip_id, title, description, profile, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    await stmt.run([
+      routeData.id,
+      routeData.trip_id,
+      routeData.title,
+      routeData.description,
+      routeData.profile,
+      routeData.created_at,
+      routeData.updated_at,
+    ]);
+
+    // Create route stops
+    for (const routeStop of stops) {
+      await this.createRouteStop(routeData.id, routeStop);
+    }
+    return await this.getRouteWithStops(routeData.id);
+  }
+
+  async getAllRoutes(): Promise<Route[]> {
+    const rows = (await this.db.all(
+      "SELECT * FROM routes ORDER BY created_at DESC"
+    )) as any[];
+    const routes = rows.map((row) => ({
+      ...row,
+      geometry: row.geometry ? JSON.parse(row.geometry) : null,
+    }));
+    return routes as Route[];
+  }
+
+  async getRoutesByTripId(tripId: string): Promise<Route[]> {
+    const rows = (await this.db.all(
+      "SELECT * FROM routes WHERE trip_id = ? ORDER BY created_at DESC",
+      [tripId]
+    )) as any[];
+    const routes = rows.map((row) => ({
+      ...row,
+      geometry: row.geometry ? JSON.parse(row.geometry) : null,
+    }));
+    return routes as Route[];
+  }
+
+  async getRouteById(id: string): Promise<Route> {
+    const row = (await this.db.get("SELECT * FROM routes WHERE id = ?", [
+      id,
+    ])) as any;
+    if (!row) throw new Error("Route could not be found");
+    const route = {
+      ...row,
+      geometry: row.geometry ? JSON.parse(row.geometry) : null,
+    };
+    return route as Route;
+  }
+
+  async getRouteWithStops(id: string): Promise<RouteWithStops> {
+    const routeRow = (await this.db.get("SELECT * FROM routes WHERE id = ?", [
+      id,
+    ])) as any;
+
+    if (!routeRow) {
+      throw new Error(`Route with ID ${id} not found`);
+    }
+
+    // Get stops for this route
+    const stopRows = (await this.db.all(
+      "SELECT * FROM route_stops WHERE route_id = ? ORDER BY order_index",
+      [id]
+    )) as RouteStop[];
+
+    const route = {
+      ...routeRow,
+      geometry: routeRow.geometry ? JSON.parse(routeRow.geometry) : null,
+      stops: stopRows,
+    };
+    return route as RouteWithStops;
+  }
+
+  async regenerateRoutePath(
+    route: string | RouteWithStops | Route,
+    timestamp?: Date
+  ) {
+    const _route: RouteWithStops =
+      typeof route == "string"
+        ? await this.getRouteWithStops(route)
+        : "stops" in route
+        ? route
+        : {
+            ...route,
+            stops: await this.getRouteStops(route.id),
+          };
+
+    const directions =
+      _route.stops.length > 1
+        ? await this.getRouteDirections(_route.stops, _route.profile)
+        : null;
+
+    _route.updated_at = timestamp?.toISOString() || new Date().toISOString();
+    _route.geometry = directions?.geometry;
+    _route.total_duration = directions?.summary.duration;
+    _route.total_distance = directions?.summary.distance;
+    await await this.db.run(
+      `UPDATE routes SET geometry = ?, total_duration = ?, total_distance = ?, profile = ?, updated_at = ?  WHERE id = ?`,
+      [
+        JSON.stringify(_route.geometry),
+        _route.total_duration,
+        _route.total_distance,
+        _route.profile,
+        _route.updated_at,
+        _route.id,
+      ]
+    );
+
+    return _route;
+  }
+
+  async updateRoute(
+    id: string,
+    updates?: Partial<
+      Omit<
+        Route,
+        | "id"
+        | "trip_id"
+        | "created_at"
+        | "updated_at"
+        | "geometry"
+        | "total_distance"
+        | "total_duration"
+      >
+    >
+  ) {
+    const routeWithStops = await this.getRouteWithStops(id);
+    if (!routeWithStops) {
+      throw new Error(`Route with ID ${id} not found`);
+    }
+
+    const combined: RouteWithStops = {
+      ...routeWithStops,
+      ...updates,
+    };
+
+    await this.regenerateRoutePath(combined);
+
+    const updated: Partial<
+      Omit<
+        Route,
+        | "id"
+        | "trip_id"
+        | "created_at"
+        | "geometry"
+        | "total_distance"
+        | "total_duration"
+      > & {
+        geometry?: string;
+      }
+    > = {
+      updated_at: new Date().toISOString(),
+      title: combined.title,
+      description: combined.description,
+      profile: combined.profile,
+    };
+
+    const fields = Object.keys(updated || {}).map((key) => `${key} = ?`);
+    const values: any[] = Object.entries(updated || {}).map(
+      ([, value]) => value || null
+    );
+    await this.db.run(`UPDATE routes SET ${fields.join(", ")} WHERE id = ?`, [
+      ...values,
+      id,
+    ]);
+    return combined;
+  }
+
+  private async getRouteDirections<T extends Coordinate>(
+    coordinates: T[],
+    profile: RouteRequest["profile"]
+  ): Promise<RouteResponse["routes"][number] | null> {
+    if (!openRouteService.isConfigured()) {
+      throw new Error("OpenRouteService API key not configured");
+    }
+    const _coordinates = coordinates.map((c) => ({
+      latitude: c.latitude,
+      longitude: c.longitude,
+    }));
+
+    const routeRequest: RouteRequest = {
+      coordinates: _coordinates,
+      profile: profile,
+      geometry: true,
+      instructions: false,
+    };
+
+    const routeResponse = await openRouteService.getDirections(routeRequest);
+
+    if (routeResponse.routes && routeResponse.routes.length > 0) {
+      const routeInfo = routeResponse.routes[0];
+      if (!routeInfo) {
+        throw new Error("No route found in the response");
+      }
+      return routeInfo;
+    } else {
+      throw new Error("No route found for the given coordinates");
+    }
+  }
+
+  async deleteRoute(id: string): Promise<boolean> {
+    const result = await this.db.run("DELETE FROM routes WHERE id = ?", [id]);
+    return !!result.changes && result.changes > 0;
+  }
+
+  async getRouteStops(routeId: string): Promise<RouteStop[]> {
+    return this.db.all(
+      "SELECT * FROM route_stops WHERE route_id = ? ORDER BY order_index",
+      [routeId]
+    ) as Promise<RouteStop[]>;
+  }
+
+  async createRouteStop(
+    routeId: string,
+    stopData: Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">
+  ): Promise<RouteWithStops> {
+    const now = new Date().toISOString();
+    const stopId = uuidv4();
+    // Enhance stop with location information if needed
+    let enhancedStopData = { ...stopData };
+    if (!stopData.location_name && stopData.latitude && stopData.longitude) {
+      try {
+        const locationInfo = await geocodingService.reverseGeocode(
+          stopData.latitude,
+          stopData.longitude
+        );
+        if (locationInfo) {
+          enhancedStopData = {
+            ...stopData,
+            location_name: locationInfo.location_name,
+            city: locationInfo.city,
+            state: locationInfo.state,
+            country: locationInfo.country,
+            country_code: locationInfo.country_code,
+          };
+        }
+      } catch (error) {
+        console.error(
+          "Failed to extract location information for stop:",
+          error
+        );
+      }
+    }
+
+    const oldRoute = await this.getRouteWithStops(routeId);
+    const finalStopData: RouteStop = {
+      id: stopId,
+      route_id: routeId,
+      ...enhancedStopData,
+      created_at: now,
+      order_index: oldRoute.stops.length,
+      updated_at: now,
+    };
+
+    const newRoute: RouteWithStops = {
+      ...oldRoute,
+      stops: [...oldRoute.stops, finalStopData],
+      updated_at: now,
+    };
+
+    await this.regenerateRoutePath(newRoute);
+    const stmt = await this.db.prepare(`
+        INSERT INTO route_stops (id, route_id, title, description, latitude, longitude, order_index, location_name, city, state, country, country_code, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+    await stmt.run([
+      finalStopData.id,
+      finalStopData.route_id,
+      finalStopData.title,
+      finalStopData.description,
+      finalStopData.latitude,
+      finalStopData.longitude,
+      finalStopData.order_index,
+      finalStopData.location_name,
+      finalStopData.city,
+      finalStopData.state,
+      finalStopData.country,
+      finalStopData.country_code,
+      finalStopData.created_at,
+      finalStopData.updated_at,
+    ]);
+
+    return newRoute;
+  }
+
+  private async reorderAllRouteStops(
+    routeId: string,
+    move?: {
+      stopId: string;
+      newStopIndex: number;
+    }
+  ): Promise<RouteStop[]> {
+    const allStops = await this.getRouteStops(routeId);
+    const sortedStops = [...allStops].sort(
+      (a, b) => a.order_index - b.order_index
+    );
+
+    if (move) {
+      const oldIndex = sortedStops.findIndex((stop) => stop.id === move.stopId);
+      if (oldIndex === -1) throw new Error("Could not find stop to move");
+      if (move.newStopIndex < 0 || move.newStopIndex >= sortedStops.length)
+        throw new Error("Invalid new index of stop");
+
+      const [movedStop] = sortedStops.splice(oldIndex, 1);
+      sortedStops.splice(move.newStopIndex, 0, movedStop);
+    }
+
+    const reorderedStops: RouteStop[] = sortedStops.map((stop, index) => ({
+      ...stop,
+      order_index: index,
+    }));
+
+    await this.db.run("BEGIN TRANSACTION");
+
+    try {
+      for (const stop of reorderedStops) {
+        const stmt = await this.db.prepare(
+          "UPDATE route_stops SET order_index = ? WHERE id = ?"
+        );
+        await stmt.run([stop.order_index, stop.id]);
+      }
+      await this.db.run("COMMIT");
+    } catch (err) {
+      await this.db.run("ROLLBACK");
+      throw err;
+    }
+
+    return reorderedStops;
+  }
+
+  async updateRouteStop(
+    id: string,
+    updates: Partial<
+      Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">
+    >
+  ): Promise<RouteWithStops> {
+    const now = new Date().toISOString();
+    const currentStop = await this.getRouteStopById(id);
+    const oldRoute = await this.getRouteWithStops(currentStop.route_id);
+    let updatedRoute: RouteWithStops = {
+      ...oldRoute,
+      stops: oldRoute.stops.map((s) =>
+        s.id === currentStop.id ? { ...currentStop, ...updates } : s
+      ),
+    };
+
+    // Enhance updates with location information if coordinates are being updated
+    let enhancedUpdates = { ...updates };
+    if (updates.latitude || updates.longitude) {
+      console.log("Update");
+      updatedRoute = await this.regenerateRoutePath(updatedRoute);
+      const lat = updates.latitude ?? currentStop.latitude;
+      const lng = updates.longitude ?? currentStop.longitude;
+      const locationInfo = await geocodingService.reverseGeocode(lat, lng);
+      if (locationInfo) {
+        enhancedUpdates = {
+          ...updates,
+          location_name: locationInfo.location_name,
+          city: locationInfo.city,
+          state: locationInfo.state,
+          country: locationInfo.country,
+          country_code: locationInfo.country_code,
+        };
+      }
+    }
+
+    console.log("Updating route stop:", enhancedUpdates);
+
+    const fields = Object.keys(enhancedUpdates)
+      .map((key) => `${key} = ?`)
+      .join(", ");
+    const values = Object.values(enhancedUpdates);
+    await this.db.run(
+      `UPDATE route_stops SET ${fields}, updated_at = ? WHERE id = ?`,
+      [...values, now, id]
+    );
+
+    if (updates.order_index) {
+      updatedRoute.stops = await this.reorderAllRouteStops(
+        currentStop.route_id,
+        {
+          stopId: id,
+          newStopIndex: updates.order_index,
         }
       );
-    });
+    }
+
+    return updatedRoute;
+  }
+
+  async getRouteStopById(id: string): Promise<RouteStop> {
+    const out = await this.db.get<RouteStop>(
+      "SELECT * FROM route_stops WHERE id = ?",
+      [id]
+    );
+
+    if (!out) throw new Error(`Route stop with ID ${id} not found`);
+    return out;
+  }
+
+  async deleteRouteStop(id: string): Promise<RouteWithStops> {
+    const routeStop = await this.getRouteStopById(id);
+    const routeWithStops = await this.getRouteWithStops(routeStop.route_id);
+    const route: RouteWithStops = {
+      ...routeWithStops,
+      stops: [...routeWithStops.stops.filter((s) => s.id != id)],
+    };
+    const newRoute = await this.regenerateRoutePath(route);
+
+    await this.db.run("DELETE FROM route_stops WHERE id = ?", [id]);
+    await this.reorderAllRouteStops(route.id);
+    return newRoute;
   }
 
   async close(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.close((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    await this.db.close();
   }
 
   // Method to backfill location information for existing photos
@@ -642,15 +979,9 @@ class Database {
   }
 
   private async getPhotosWithCoordinatesButNoLocation(): Promise<Photo[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(
-        "SELECT * FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND location_name IS NULL",
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows as Photo[]);
-        }
-      );
-    });
+    return await this.db.all(
+      "SELECT * FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND location_name IS NULL"
+    );
   }
 
   // Public method to get photos that need location data
@@ -662,28 +993,22 @@ class Database {
     id: string,
     locationInfo: LocationInfo
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const now = new Date().toISOString();
-      this.db.run(
-        `UPDATE photos SET 
+    const now = new Date().toISOString();
+    await this.db.run(
+      `UPDATE photos SET 
          location_name = ?, city = ?, state = ?, country = ?, country_code = ?, landmark = ?, updated_at = ?
          WHERE id = ?`,
-        [
-          locationInfo.location_name,
-          locationInfo.city,
-          locationInfo.state,
-          locationInfo.country,
-          locationInfo.country_code,
-          locationInfo.landmark,
-          now,
-          id,
-        ],
-        function (err) {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
-    });
+      [
+        locationInfo.location_name,
+        locationInfo.city,
+        locationInfo.state,
+        locationInfo.country,
+        locationInfo.country_code,
+        locationInfo.landmark,
+        now,
+        id,
+      ]
+    );
   }
 }
 

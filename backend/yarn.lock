@@ -1115,6 +1115,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dotenv@npm:^17.2.1":
+  version: 17.2.1
+  resolution: "dotenv@npm:17.2.1"
+  checksum: 10c0/918dd2f9d8b8f86b0afabad9534793d51de3718c437f9e7b6525628cf68c1d4ae768cc37a5afff38c066f58a8ecf549f4ac6cd5617485bd328e826112cc2650a
+  languageName: node
+  linkType: hard
+
 "dunder-proto@npm:^1.0.1":
   version: 1.0.1
   resolution: "dunder-proto@npm:1.0.1"
@@ -2658,11 +2665,14 @@ __metadata:
     "@types/uuid": "npm:^10.0.0"
     bcryptjs: "npm:^3.0.2"
     cors: "npm:^2.8.5"
+    dotenv: "npm:^17.2.1"
     exifr: "npm:^7.1.3"
     express: "npm:^5.1.0"
     jsonwebtoken: "npm:^9.0.2"
     multer: "npm:^2.0.2"
     sharp: "npm:^0.34.3"
+    sqlite: "npm:^5.1.1"
+    sqlite-async: "npm:^1.2.2"
     sqlite3: "npm:^5.1.7"
     ts-node-dev: "npm:^2.0.0"
     typescript: "npm:^5.8.3"
@@ -2997,6 +3007,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sqlite-async@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "sqlite-async@npm:1.2.2"
+  dependencies:
+    sqlite3: "npm:^5.1.7"
+  checksum: 10c0/06b04c7fd719c2b656c5533c7bc35694d56ec1d6846d130fa4f699d6894809abce4fc8b5296abb5d689a0d91b8491ee481afae039633ede8fb7bb924b7ac0803
+  languageName: node
+  linkType: hard
+
 "sqlite3@npm:*, sqlite3@npm:^5.1.7":
   version: 5.1.7
   resolution: "sqlite3@npm:5.1.7"
@@ -3015,6 +3034,13 @@ __metadata:
     node-gyp:
       optional: true
   checksum: 10c0/10daab5d7854bd0ec3c7690c00359cd3444eabc869b68c68dcb61374a8fa5e2f4be06cf0aba78f7a16336d49e83e4631e8af98f8bd33c772fe8d60b45fa60bc1
+  languageName: node
+  linkType: hard
+
+"sqlite@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "sqlite@npm:5.1.1"
+  checksum: 10c0/d656055cd8d4c4637c8ad4d14d4c8e04a5fd44ede5eae54f36deefa844724588e6c45dbb50ab45954fca24ba1362b6936df1bd42ad0c511275e6dbcffbb62e52
   languageName: node
   linkType: hard
 

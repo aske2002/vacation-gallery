@@ -40,6 +40,9 @@ export async function processImage(
   // Process main image
   let image = sharp(buffer);
   
+  // Auto-rotate based on EXIF orientation
+  image = image.rotate();
+  
   // Resize if too large
   if (originalMetadata.width && originalMetadata.width > maxWidth) {
     image = image.resize({ width: maxWidth, withoutEnlargement: true });
@@ -61,13 +64,14 @@ export async function processImage(
   if (createThumbnail) {
     thumbnailFilename = `thumb_${filename}`;
     const thumbnailPath = path.join(uploadDir, 'thumbnails', thumbnailFilename);
-    
+
     await sharp(buffer)
+      .rotate() // Auto-rotate based on EXIF orientation
       .resize({ 
         width: thumbnailSize, 
         height: thumbnailSize, 
-        fit: 'cover',
-        position: 'center'
+        fit: 'inside',
+        withoutEnlargement: true
       })
       .jpeg({ quality: 80 })
       .toFile(thumbnailPath);

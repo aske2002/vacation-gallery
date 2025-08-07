@@ -4,7 +4,14 @@ import path from "path";
 import tripRoutes from "./trip-routes";
 import photoRoutes from "./photo-routes";
 import authRoutes from "./auth-routes";
+import openrouteRoutes from "./openroute-routes";
+import routeRoutes from "./route-routes";
 import { database } from "./database";
+import { configDotenv } from "dotenv";
+
+configDotenv({
+  path: path.resolve(__dirname, "../.env"),
+})
 
 const app = express();
 const PORT = 1798;
@@ -30,6 +37,8 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api", tripRoutes);
 app.use("/api", photoRoutes);
+app.use("/api", routeRoutes);
+app.use("/api/openroute", openrouteRoutes);
 
 // Error handling middleware
 app.use(
