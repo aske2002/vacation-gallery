@@ -4,12 +4,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import MapComponentOSM from "../map-component-osm";
+import MapComponent from "../osm/map-component";
 import { Button } from "../ui/button";
 import { XIcon } from "lucide-react";
 
 interface MapDialogProps {
   open: boolean;
+  tripId: string;
   onClose?: () => void;
   onOpenChange?: (open: boolean) => void;
   onClickPhoto?: (photo: any) => void;
@@ -20,8 +21,8 @@ export default function MapDialog({
   open,
   onClose,
   onOpenChange,
+  tripId,
   onClickPhoto,
-  title,
 }: MapDialogProps) {
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
@@ -36,12 +37,12 @@ export default function MapDialog({
         className="w-full p-0 max-w-full! max-h-full! h-full"
         showCloseButton={false}
       >
-        <MapComponentOSM onClickPhoto={onClickPhoto} />
+        <MapComponent onClickPhoto={onClickPhoto} tripId={tripId} />
         <Button
           size={"icon"}
           variant={"default"}
           onClick={() => {
-            onClose?.()
+            onClose?.();
           }}
           className="absolute left-2 top-2"
         >

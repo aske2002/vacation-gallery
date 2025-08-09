@@ -1,22 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import {
-  TileLayer,
-  Marker,
-  Polyline,
-  useMapEvents,
-  useMap,
-} from "react-leaflet";
-import {
-  X,
-  Save,
-  MapPin,
-  Navigation,
-  Trash2,
-  ArrowUp,
-  ArrowDown,
-  Search,
-  Target,
-} from "lucide-react";
+import { Marker, Polyline, useMapEvents } from "react-leaflet";
+import { Save, Navigation, Trash2, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,31 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { RouteStop, RouteWithStops } from "@common/types/route";
-import {
-  UpdateRouteRequest,
-  UpdateRouteStop,
-} from "@common/types/request/create-route-request";
+import { Route, RouteStop } from "@common/types/route";
+import { UpdateRouteRequest } from "@common/types/request/create-route-request";
 import { toast } from "sonner";
-import { useDebounce } from "@uidotdev/usehooks";
-import { useQuery } from "@tanstack/react-query";
 import L, { Map } from "leaflet";
 import polyline from "@mapbox/polyline";
 import {
-  useRoute,
   useCreateRouteStop,
   useUpdateRouteStop,
   useDeleteRouteStop,
@@ -67,21 +32,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { LoadingButton } from "./loading-button";
-import { OpenStreetMap } from "./openstreetmap";
-import LocationSearch from "./location-search";
+} from "../ui/form";
+import { LoadingButton } from "../loading-button";
+import { OpenStreetMap } from "../openstreetmap";
+import LocationSearch from "../location-search";
+import RouteStopItem from "./route-stop-item";
+import { useNavigate } from "@tanstack/react-router";
+import { usePolylineFromRoute } from "@/hooks/useCombinePolylines";
 
 interface RouteEditorWithMapProps {
-  routeId: string;
-  onCancel?: () => void;
-  onDelete?: (routeId: string) => void;
-}
-
-interface EditableRouteStop
-  extends Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at"> {
-  id?: string;
-  isNew?: boolean;
+  route: Route;
 }
 
 interface NominatimResult {
@@ -106,16 +66,13 @@ const transportationProfiles = [
   { value: "wheelchair", label: "Wheelchair", icon: "♿" },
 ];
 
-export function RouteEditorWithMap({
-  routeId,
-  onCancel,
-  onDelete,
-}: RouteEditorWithMapProps) {
+export function RouteEditor({ route: data }: RouteEditorWithMapProps) {
   const createRouteStopMutation = useCreateRouteStop();
   const updateRouteStopMutation = useUpdateRouteStop();
   const deleteRouteStopMutation = useDeleteRouteStop();
   const deleteRouteMutation = useDeleteRoute();
-  const { data } = useRoute(routeId);
+
+  const navigate = useNavigate();
 
   const route = useMemo(() => {
     if (updateRouteStopMutation.isSuccess) {
@@ -129,11 +86,12 @@ export function RouteEditorWithMap({
           ...createRouteStopMutation.variables.data,
           created_at: now,
           updated_at: now,
-          route_id: routeId,
+          route_id: data.id,
           id: "new-stop",
         } satisfies RouteStop,
       ]) ||
       [];
+
     const beingDeletedId = deleteRouteStopMutation.isPending
       ? deleteRouteStopMutation.variables.stopId
       : undefined;
@@ -160,7 +118,7 @@ export function RouteEditorWithMap({
     const result = {
       ...data,
       stops: sortedStops,
-    } as RouteWithStops;
+    } as Route;
 
     if (isUpdatingLocation) {
       result.segments = [];
@@ -182,14 +140,7 @@ export function RouteEditorWithMap({
   const stops = route?.stops || [];
   const mapref = useRef<Map | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([51.505, -0.09]);
-  const [mapZoom, setMapZoom] = useState(10);
-
-  const debouncedSearch = useDebounce(searchQuery, 300);
-
-  const getDefaultValues = (route: RouteWithStops): UpdateRouteRequest => {
+  const getDefaultValues = (route: Route): UpdateRouteRequest => {
     return {
       title: route?.title || "",
       description: route?.description || "",
@@ -222,8 +173,10 @@ export function RouteEditorWithMap({
   const currentlyUpdatingStopId = useMemo(() => {
     return stops.find(
       (stop) =>
-        updateRouteStopMutation.isPending &&
-        updateRouteStopMutation.variables.stopId === stop.id
+        (updateRouteStopMutation.isPending &&
+          updateRouteStopMutation.variables.stopId === stop.id) ||
+        (createRouteStopMutation.isPending &&
+          createRouteStopMutation.variables.data.title === stop.title)
     )?.id;
   }, [
     updateRouteStopMutation.isPending,
@@ -233,41 +186,24 @@ export function RouteEditorWithMap({
 
   // Initialize map center and zoom based on existing stops
   useEffect(() => {
-    if (stops.length > 0) {
-      const validStops = stops.filter(
-        (stop) => stop.latitude !== 0 && stop.longitude !== 0
+    if (!mapref.current) return;
+
+    const validStops = stops.filter(
+      (stop) => stop.latitude !== 0 && stop.longitude !== 0
+    );
+
+    if (validStops.length > 1) {
+      const bounds = L.latLngBounds(
+        validStops.map((stop) => [stop.latitude, stop.longitude])
       );
-      if (validStops.length > 0) {
-        // Calculate center of all stops
-        const avgLat =
-          validStops.reduce((sum, stop) => sum + stop.latitude, 0) /
-          validStops.length;
-        const avgLng =
-          validStops.reduce((sum, stop) => sum + stop.longitude, 0) /
-          validStops.length;
-        setMapCenter([avgLat, avgLng]);
-        setMapZoom(12);
-      }
+      mapref.current.fitBounds(bounds, { padding: [20, 20] });
+    } else if (validStops.length === 1) {
+      mapref.current.setView(
+        [validStops[0].latitude, validStops[0].longitude],
+        15
+      );
     }
-  }, []);
-
-  const formatDistance = (meters?: number) => {
-    if (!meters) return "";
-    if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(1)} km`;
-    }
-    return `${Math.round(meters)} m`;
-  };
-
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return "";
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
-  };
+  }, [stops, route, mapref.current]);
 
   const addStopFromSearch = async (result: NominatimResult) => {
     const newStopData = {
@@ -279,12 +215,14 @@ export function RouteEditorWithMap({
     };
 
     try {
+      mapref.current?.setView(
+        [newStopData.latitude, newStopData.longitude],
+        15
+      );
       await createRouteStopMutation.mutateAsync({
-        routeId: routeId,
+        routeId: data.id,
         data: newStopData,
       });
-      setSearchQuery("");
-      setShowSearchResults(false);
       toast.success(`Added stop: ${newStopData.title}`);
     } catch (error) {
       toast.error("Failed to add stop");
@@ -303,7 +241,7 @@ export function RouteEditorWithMap({
 
     try {
       await createRouteStopMutation.mutateAsync({
-        routeId: routeId,
+        routeId: data.id,
         data: newStopData,
       });
       toast.success("Stop added and route updated");
@@ -326,29 +264,6 @@ export function RouteEditorWithMap({
     } catch (error) {
       toast.error("Failed to delete stop");
       console.error("Error deleting stop:", error);
-    }
-  };
-
-  const updateStop = async (
-    index: number,
-    value: Partial<EditableRouteStop>
-  ) => {
-    if (!route) return;
-
-    const stop = stops[index];
-    try {
-      await updateRouteStopMutation.mutateAsync({
-        routeId: route.id,
-        stopId: stop.id,
-        data: value,
-      });
-
-      if (value.latitude !== undefined || value.longitude !== undefined) {
-        toast.success("Stop position updated");
-      }
-    } catch (error) {
-      toast.error("Failed to update stop");
-      console.error("Error updating stop:", error);
     }
   };
 
@@ -387,8 +302,13 @@ export function RouteEditorWithMap({
       );
   };
 
+  const navigateBack = () => {
+    route &&
+      navigate({ to: "/admin/$tripId", params: { tripId: route.trip_id } });
+  };
+
   const deleteRoute = async () => {
-    if (!route || !onDelete) return;
+    if (!route) return;
 
     if (
       confirm(
@@ -398,7 +318,7 @@ export function RouteEditorWithMap({
       try {
         await deleteRouteMutation.mutateAsync(route.id);
         toast.success("Route deleted successfully");
-        onDelete(route.id);
+        navigateBack();
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Failed to delete route";
@@ -418,78 +338,13 @@ export function RouteEditorWithMap({
     return null;
   }
 
-  // Component to fit map bounds to show all stops
-  function FitBounds() {
-    if (!mapref.current) return;
-
-    const validStops = stops.filter(
-      (stop) => stop.latitude !== 0 && stop.longitude !== 0
-    );
-
-    if (validStops.length > 1) {
-      const bounds = L.latLngBounds(
-        validStops.map((stop) => [stop.latitude, stop.longitude])
-      );
-      mapref.current.fitBounds(bounds, { padding: [20, 20] });
-    } else if (validStops.length === 1) {
-      mapref.current.setView(
-        [validStops[0].latitude, validStops[0].longitude],
-        15
-      );
-    }
-  }
-
-  useEffect(() => {
-    FitBounds();
-  }, [route?.id, reset]);
-
-  const polyLineCoords: [number, number][] = useMemo(() => {
-    if (!route?.segments || route.segments.length === 0) return [];
-    console.log(route.segments)
-    try {
-      const mergedCoords: [number, number][] = [];
-
-      for (const segment of route.segments) {
-        let segmentCoords: [number, number][] = [];
-        if (typeof segment.geometry === "string") {
-          // Handle encoded polyline string
-          try {
-            segmentCoords = polyline.decode(segment.geometry);
-          } catch (e) {
-            console.warn("Failed to decode polyline segment:", e);
-          }
-        } else if (
-          segment.geometry &&
-          segment.geometry.type === "LineString" &&
-          Array.isArray(segment.geometry.coordinates)
-        ) {
-          // Handle GeoJSON LineString
-          segmentCoords = segment.geometry.coordinates.map(
-            ([lng, lat]) => [lat, lng] as [number, number]
-          );
-        }
-
-        // Merge while avoiding duplicate point between segments
-        if (segmentCoords.length > 0) {
-          if (mergedCoords.length === 0) {
-            mergedCoords.push(...segmentCoords);
-          } else {
-            mergedCoords.push(...segmentCoords.slice(1)); // skip duplicate
-          }
-        }
-      } 
-      return mergedCoords;
-    } catch (error) {
-      console.error("Failed to parse route segments into polyline:", error);
-      return [];
-    }
-  }, [route?.segments]);
+  const polyLineCoords = usePolylineFromRoute(route);
 
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(saveRoute)}>
-        <div className="space-y-4">
-          <Card>
+        <div className="space-y-4 grid grid-cols-1 lg:grid-cols-2 w-full gap-4">
+          <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Navigation className="h-5 w-5" />
@@ -567,18 +422,21 @@ export function RouteEditorWithMap({
               />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Button variant="destructive" onClick={deleteRoute} size="sm">
+                  <Button
+                    variant="destructive"
+                    onClick={deleteRoute}
+                    type="button"
+                    size="sm"
+                  >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Delete
                   </Button>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {onCancel && (
-                    <Button variant="outline" onClick={onCancel}>
-                      Cancel
-                    </Button>
-                  )}
+                  <Button variant="outline" onClick={navigateBack}>
+                    Cancel
+                  </Button>
                   <LoadingButton
                     type="submit"
                     loading={isSaving}
@@ -602,7 +460,18 @@ export function RouteEditorWithMap({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <LocationSearch className="mb-2" onSelect={(_, r) => addStopFromSearch(r)} />
+              <LocationSearch
+                className="mb-4"
+                referenceLocation={
+                  stops.at(0)
+                    ? {
+                        lat: stops[0].latitude,
+                        lng: stops[0].longitude,
+                      }
+                    : undefined
+                }
+                onSelect={(_, r) => addStopFromSearch(r)}
+              />
 
               {stops.length === 0 ? (
                 <div className="text-center text-gray-500 py-4">
@@ -610,69 +479,20 @@ export function RouteEditorWithMap({
                   add stops.
                 </div>
               ) : (
-                <div className="space-y-2 max-h-60 overflow-y-auto gap-2 flex flex-col">
+                <div className=" gap-2 flex flex-col">
                   {stops.map((stop, index) => (
-                    <div
-                      key={index}
-                      className={`p-2 border rounded-md  ${"border-gray-200 hover:border-gray-300"}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{index + 1}</Badge>
-                        <div className="flex-1 min-w-0">
-                          <Input
-                            value={stop.title}
-                            onChange={(e) =>
-                              updateStop(index, { title: e.target.value })
-                            }
-                            placeholder="Stop name..."
-                            className="text-sm border-none p-0 h-auto"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div className="text-xs text-gray-500">
-                            {stop.latitude.toFixed(4)},{" "}
-                            {stop.longitude.toFixed(4)}
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveStop(index, "up");
-                            }}
-                            disabled={index === 0}
-                            className="h-6 w-6 p-0"
-                          >
-                            <ArrowUp className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveStop(index, "down");
-                            }}
-                            disabled={index === stops.length - 1}
-                            className="h-6 w-6 p-0"
-                          >
-                            <ArrowDown className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeStop(index);
-                            }}
-                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                    <RouteStopItem
+                      stop={stop}
+                      onNavigateClicked={() => {
+                        mapref.current?.setView(
+                          [stop.latitude, stop.longitude],
+                          12
+                        );
+                      }}
+                      key={stop.id}
+                      moveStop={(dir) => moveStop(index, dir)}
+                      totalStops={stops.length}
+                    />
                   ))}
                 </div>
               )}
@@ -680,8 +500,6 @@ export function RouteEditorWithMap({
             <CardContent className="p-0">
               <div className="h-96 rounded-lg overflow-hidden">
                 <OpenStreetMap
-                  center={mapCenter}
-                  zoom={mapZoom}
                   className="h-full w-full"
                   zoomControl={true}
                   ref={mapref}
@@ -717,7 +535,7 @@ export function RouteEditorWithMap({
                         eventHandlers={{
                           moveend: (e) => {
                             updateRouteStopMutation.mutateAsync({
-                              routeId: routeId,
+                              routeId: data.id,
                               stopId: stop.id,
                               data: {
                                 latitude: e.target.getLatLng().lat,

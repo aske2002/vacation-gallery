@@ -32,6 +32,7 @@ export default function LocationInput({
     <>
       <Input
         value={formattedValue}
+        placeholder="Click to select location"
         onClick={() => !pickerOpen && setPickerOpen(true)}
         {...rest}
       ></Input>

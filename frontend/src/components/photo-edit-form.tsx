@@ -1,4 +1,4 @@
-import { Photo, PhotoEditableMetadata } from "@common/types/photo";
+import { PhotoType, PhotoEditableMetadata } from "@common/types/photo";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import DateInput from "./ui/date-input";

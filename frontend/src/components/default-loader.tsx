@@ -1,7 +1,21 @@
+import { cn } from "@/lib/utils";
+import { ComponentProps } from "react";
 import { MoonLoader } from "react-spinners";
 
-export function DefaultLoader() {
-  return <div className="flex justify-center items-center h-full">
-    <MoonLoader size={50} />
-  </div>
+type DefaultLoaderProps = ComponentProps<"div"> & {
+  size?: number;
+  color?: string;
+};
+
+export function DefaultLoader({
+  size = 50,
+  className,
+  color,
+  ...rest
+}: DefaultLoaderProps) {
+  return (
+    <div className={cn(className, "flex justify-center items-center h-full")}>
+      <MoonLoader size={size} color={color} />
+    </div>
+  );
 }

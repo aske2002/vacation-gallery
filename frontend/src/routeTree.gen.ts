@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as FlightRouteImport } from './routes/flight'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as TripIdRouteImport } from './routes/$tripId'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AdminTripIdRouteImport } from './routes/admin/$tripId'
+import { Route as AdminTripIdIndexRouteImport } from './routes/admin/$tripId/index'
+import { Route as AdminTripIdRouteIdRouteImport } from './routes/admin/$tripId/$routeId'
 
+const FlightRoute = FlightRouteImport.update({
+  id: '/flight',
+  path: '/flight',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -41,9 +48,14 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AdminTripIdRoute = AdminTripIdRouteImport.update({
-  id: '/$tripId',
-  path: '/$tripId',
+const AdminTripIdIndexRoute = AdminTripIdIndexRouteImport.update({
+  id: '/$tripId/',
+  path: '/$tripId/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTripIdRouteIdRoute = AdminTripIdRouteIdRouteImport.update({
+  id: '/$tripId/$routeId',
+  path: '/$tripId/$routeId',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 
@@ -52,15 +64,19 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/$tripId': typeof TripIdRoute
   '/auth': typeof AuthRoute
-  '/admin/$tripId': typeof AdminTripIdRoute
+  '/flight': typeof FlightRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/$tripId/$routeId': typeof AdminTripIdRouteIdRoute
+  '/admin/$tripId': typeof AdminTripIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$tripId': typeof TripIdRoute
   '/auth': typeof AuthRoute
-  '/admin/$tripId': typeof AdminTripIdRoute
+  '/flight': typeof FlightRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/$tripId/$routeId': typeof AdminTripIdRouteIdRoute
+  '/admin/$tripId': typeof AdminTripIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,8 +84,10 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteRouteWithChildren
   '/$tripId': typeof TripIdRoute
   '/auth': typeof AuthRoute
-  '/admin/$tripId': typeof AdminTripIdRoute
+  '/flight': typeof FlightRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/$tripId/$routeId': typeof AdminTripIdRouteIdRoute
+  '/admin/$tripId/': typeof AdminTripIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,18 +96,29 @@ export interface FileRouteTypes {
     | '/admin'
     | '/$tripId'
     | '/auth'
-    | '/admin/$tripId'
+    | '/flight'
     | '/admin/'
+    | '/admin/$tripId/$routeId'
+    | '/admin/$tripId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$tripId' | '/auth' | '/admin/$tripId' | '/admin'
+  to:
+    | '/'
+    | '/$tripId'
+    | '/auth'
+    | '/flight'
+    | '/admin'
+    | '/admin/$tripId/$routeId'
+    | '/admin/$tripId'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/$tripId'
     | '/auth'
-    | '/admin/$tripId'
+    | '/flight'
     | '/admin/'
+    | '/admin/$tripId/$routeId'
+    | '/admin/$tripId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -97,10 +126,18 @@ export interface RootRouteChildren {
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   TripIdRoute: typeof TripIdRoute
   AuthRoute: typeof AuthRoute
+  FlightRoute: typeof FlightRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/flight': {
+      id: '/flight'
+      path: '/flight'
+      fullPath: '/flight'
+      preLoaderRoute: typeof FlightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -136,24 +173,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/admin/$tripId': {
-      id: '/admin/$tripId'
+    '/admin/$tripId/': {
+      id: '/admin/$tripId/'
       path: '/$tripId'
       fullPath: '/admin/$tripId'
-      preLoaderRoute: typeof AdminTripIdRouteImport
+      preLoaderRoute: typeof AdminTripIdIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/$tripId/$routeId': {
+      id: '/admin/$tripId/$routeId'
+      path: '/$tripId/$routeId'
+      fullPath: '/admin/$tripId/$routeId'
+      preLoaderRoute: typeof AdminTripIdRouteIdRouteImport
       parentRoute: typeof AdminRouteRoute
     }
   }
 }
 
 interface AdminRouteRouteChildren {
-  AdminTripIdRoute: typeof AdminTripIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminTripIdRouteIdRoute: typeof AdminTripIdRouteIdRoute
+  AdminTripIdIndexRoute: typeof AdminTripIdIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
-  AdminTripIdRoute: AdminTripIdRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminTripIdRouteIdRoute: AdminTripIdRouteIdRoute,
+  AdminTripIdIndexRoute: AdminTripIdIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
@@ -165,6 +211,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRouteRoute: AdminRouteRouteWithChildren,
   TripIdRoute: TripIdRoute,
   AuthRoute: AuthRoute,
+  FlightRoute: FlightRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

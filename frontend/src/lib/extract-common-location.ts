@@ -1,7 +1,8 @@
-import { Photo } from "@common/types/photo";
+import { PhotoType } from "@common/types/photo";
+import { Photo } from "./photo-sorting";
 
 export function findCommonDenominatorAndBroader(items: Photo[]): string[] {
-  const idSpecificityOrder: (keyof Photo)[] = [
+  const idSpecificityOrder: (keyof Photo["location"])[] = [
     "city",
     "state",
     "country",
@@ -11,9 +12,7 @@ export function findCommonDenominatorAndBroader(items: Photo[]): string[] {
   for (let i = 0; i < idSpecificityOrder.length; i++) {
     const key = idSpecificityOrder[i];
 
-    const keyValues = items.map(
-      (item) => item?.[key]
-    );
+    const keyValues = items.map((item) => item.location?.[key]);
 
     if (
       keyValues.every((val) => typeof val === "string") &&
@@ -24,9 +23,7 @@ export function findCommonDenominatorAndBroader(items: Photo[]): string[] {
 
       for (let j = i; j < idSpecificityOrder.length; j++) {
         const field = idSpecificityOrder[j];
-        const values = items.map(
-          (item) => item?.[field]
-        );
+        const values = items.map((item) => item.location?.[field]);
 
         if (
           values.every((val) => typeof val === "string") &&

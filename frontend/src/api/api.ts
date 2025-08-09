@@ -1,12 +1,12 @@
 import axios, { AxiosInstance, AxiosProgressEvent } from "axios";
-import { Photo } from "@common/types/photo";
+import { PhotoType } from "@common/types/photo";
 import {
   UploadPhotoRequest,
   UpdatePhotoRequest,
 } from "@common/types/request/update-photo-request";
 import { CreateTripRequest } from "@common/types/request/create-trip-request";
-import { Trip } from "@common/types/trip";
-import { Route, RouteStop, RouteWithStops } from "@common/types/route";
+import { Trip, UpdateTripRequest } from "@common/types/trip";
+import { Route, RouteStop } from "@common/types/route";
 import {
   CreateRouteRequest,
   UpdateRouteRequest,
@@ -25,16 +25,10 @@ import {
   Coordinate,
   TravelTimeResponse,
 } from "@common/types/routing";
+import { FlightData } from "@common/types/flightdata";
 
 export interface DeletePhotosRequest {
   photoIds: string[];
-}
-
-export interface UpdateTripRequest {
-  name?: string;
-  description?: string;
-  start_date?: string;
-  end_date?: string;
 }
 
 export interface UploadPhotosRequest {
@@ -49,7 +43,7 @@ export type UploadPhotosRequestItem = {
 
 export interface UploadResponse {
   message: string;
-  photos: Photo[];
+  photos: PhotoType[];
 }
 
 export interface TripWithPhotoCount extends Trip {
@@ -198,7 +192,7 @@ export class Api {
     await this.client.delete(`/trips/${id}`);
   };
 
-  getTripPhotos = async (tripId: string): Promise<Photo[]> => {
+  getTripPhotos = async (tripId: string): Promise<PhotoType[]> => {
     const response = await this.client.get(`/trips/${tripId}/photos`);
     return response.data;
   };
@@ -209,22 +203,22 @@ export class Api {
   };
 
   // Photo Methods
-  getAllPhotos = async (): Promise<Photo[]> => {
+  getAllPhotos = async (): Promise<PhotoType[]> => {
     const response = await this.client.get("/photos");
     return response.data;
   };
 
-  getPhotosWithCoordinates = async (): Promise<Photo[]> => {
+  getPhotosWithCoordinates = async (): Promise<PhotoType[]> => {
     const response = await this.client.get("/photos/with-coordinates");
     return response.data;
   };
 
-  getPhotoById = async (id: string): Promise<Photo> => {
+  getPhotoById = async (id: string): Promise<PhotoType> => {
     const response = await this.client.get(`/photos/${id}`);
     return response.data;
   };
 
-  updatePhoto = async (request: UpdatePhotoRequest): Promise<Photo> => {
+  updatePhoto = async (request: UpdatePhotoRequest): Promise<PhotoType> => {
     const response = await this.client.put(`/photos/${request.id}`, request);
     return response.data;
   };
@@ -241,12 +235,12 @@ export class Api {
     return response.data;
   };
 
-  getRouteById = async (id: string): Promise<RouteWithStops> => {
+  getRouteById = async (id: string): Promise<Route> => {
     const response = await this.client.get(`/routes/${id}`);
     return response.data;
   };
 
-  createRoute = async (data: CreateRouteRequest): Promise<RouteWithStops> => {
+  createRoute = async (data: CreateRouteRequest): Promise<Route> => {
     const response = await this.client.post("/routes", data);
     return response.data;
   };
@@ -254,7 +248,7 @@ export class Api {
   updateRoute = async (
     id: string,
     data: UpdateRouteRequest
-  ): Promise<RouteWithStops> => {
+  ): Promise<Route> => {
     const response = await this.client.put(`/routes/${id}`, data);
     return response.data;
   };
@@ -271,7 +265,7 @@ export class Api {
   createRouteStop = async (
     routeId: string,
     data: Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">
-  ): Promise<RouteWithStops> => {
+  ): Promise<Route> => {
     const response = await this.client.post(`/routes/${routeId}/stops`, data);
     return response.data;
   };
@@ -280,7 +274,7 @@ export class Api {
     routeId: string,
     stopId: string,
     data: UpdateRouteStop
-  ): Promise<RouteWithStops> => {
+  ): Promise<Route> => {
     const response = await this.client.put(
       `/routes/${routeId}/stops/${stopId}`,
       data
@@ -291,14 +285,14 @@ export class Api {
   deleteRouteStop = async (
     routeId: string,
     stopId: string
-  ): Promise<RouteWithStops> => {
+  ): Promise<Route> => {
     const response = await this.client.delete(
       `/routes/${routeId}/stops/${stopId}`
     );
     return response.data;
   };
 
-  regenerateRoute = async (routeId: string): Promise<RouteWithStops> => {
+  regenerateRoute = async (routeId: string): Promise<Route> => {
     const response = await this.client.post(`/routes/${routeId}/regenerate`);
     return response.data;
   };
@@ -328,28 +322,7 @@ export class Api {
     }
     return `${Math.round(meters)} m`;
   }
-
-  /**
-   * Get route summary statistics
-   */
-  getRouteSummary(route: RouteWithStops): {
-    stopCount: number;
-    distance: string;
-    duration: string;
-    profile: string;
-  } {
-    return {
-      stopCount: route.stops.length,
-      distance: route.total_distance
-        ? this.formatRouteDistance(route.total_distance)
-        : "Unknown",
-      duration: route.total_duration
-        ? this.formatRouteDuration(route.total_duration)
-        : "Unknown",
-      profile: route.profile,
-    };
-  }
-
+  
   /**
    * Validate route data before submission
    */
@@ -396,7 +369,7 @@ export class Api {
   /**
    * Get coordinates from route stops
    */
-  getRouteCoordinates(route: RouteWithStops): Coordinate[] {
+  getRouteCoordinates(route: Route): Coordinate[] {
     return route.stops
       .sort((a, b) => a.order_index - b.order_index)
       .map((stop) => ({
@@ -408,7 +381,7 @@ export class Api {
   /**
    * Calculate route bounds for map display
    */
-  getRouteBounds(route: RouteWithStops): {
+  getRouteBounds(route: Route): {
     north: number;
     south: number;
     east: number;
@@ -477,7 +450,7 @@ export class Api {
   }
 
   // Advanced methods
-  searchPhotos = async (query: string): Promise<Photo[]> => {
+  searchPhotos = async (query: string): Promise<PhotoType[]> => {
     // Simple client-side search implementation
     // In a real app, you might want to add a search endpoint to the backend
     const photos = await this.getAllPhotos();
@@ -512,7 +485,7 @@ export class Api {
     south: number;
     east: number;
     west: number;
-  }): Promise<Photo[]> {
+  }): Promise<PhotoType[]> {
     const photos = await this.getPhotosWithCoordinates();
 
     return photos.filter(
@@ -531,7 +504,7 @@ export class Api {
   getPhotosByDateRange = async (
     startDate: string,
     endDate: string
-  ): Promise<Photo[]> => {
+  ): Promise<PhotoType[]> => {
     const photos = await this.getAllPhotos();
 
     return photos.filter((photo) => {
@@ -687,7 +660,7 @@ export class Api {
    * Calculate route between photos based on their GPS coordinates
    */
   async getPhotoRoute(
-    photos: Photo[],
+    photos: PhotoType[],
     profile?: RouteRequest["profile"]
   ): Promise<RouteResponse> {
     const coordinates = photos
@@ -713,7 +686,7 @@ export class Api {
    * Get travel times between all photos in a trip
    */
   async getPhotoTravelMatrix(
-    photos: Photo[],
+    photos: PhotoType[],
     profile?: RouteRequest["profile"]
   ): Promise<MatrixResponse> {
     const locations = photos
@@ -740,9 +713,9 @@ export class Api {
   async getPhotosWithinRange(
     startLocation: Coordinate,
     rangeInSeconds: number,
-    photos: Photo[],
+    photos: PhotoType[],
     profile?: RouteRequest["profile"]
-  ): Promise<Array<{ photo: Photo; travelTime: number; distance: number }>> {
+  ): Promise<Array<{ photo: PhotoType; travelTime: number; distance: number }>> {
     const photosWithCoordinates = photos.filter(
       (photo) => photo.latitude && photo.longitude
     );
@@ -793,6 +766,11 @@ export class Api {
 
     return result;
   }
+
+  getFlightData = async () => {
+    const response = await this.client.get<FlightData>("/flight/info");
+    return response.data;
+  };
 }
 
 // Export singleton instance

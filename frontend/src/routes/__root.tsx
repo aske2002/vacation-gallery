@@ -8,6 +8,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useVacationAuth";
 import { UserMenu } from "@/components/auth/user-menu";
+import { useLocation } from "react-router";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -33,6 +34,9 @@ function RootComponent() {
               Admin
             </Button>
           )}
+          <Button variant={"link"} onClick={() => navigate({ to: "/flight" })}>
+            Flight Data
+          </Button>
         </div>
       )}
       <Outlet />

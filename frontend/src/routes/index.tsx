@@ -7,8 +7,10 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import type { Trip } from "@common/types/trip";
 import { api, TripWithPhotoCount } from "@/api/api";
 import { useMemo } from "react";
-import { Photo } from "@common/types/photo";
+import { PhotoType } from "@common/types/photo";
 import { getFlagEmoji } from "@/lib/flag-emoji";
+import useFlightData from "@/hooks/useFlightData";
+import { Photo } from "@/lib/photo-sorting";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -46,15 +48,17 @@ interface TripProps {
 function Trip({ trip, onClick }: TripProps) {
   const { data: tripPhotos } = useTripPhotos(trip.id);
 
+  const flightData = useFlightData();
+
   const countries = useMemo(() => {
     if (!tripPhotos) return [];
 
     return Array.from(
       new Map<string, string>(
-        tripPhotos
+        tripPhotos.all
           .map((t) =>
-            t.country && t.country_code
-              ? ([t.country_code, t.country] as const)
+            t.location.country && t.location.countryCode
+              ? ([t.location.countryCode, t.location.country] as const)
               : undefined
           )
           .filter((c) => !!c)
@@ -66,12 +70,9 @@ function Trip({ trip, onClick }: TripProps) {
   }, [trip]);
 
   const max10EquallySpacedPhotos = useMemo(() => {
-    if (!tripPhotos || tripPhotos.length === 0) return [];
+    if (!tripPhotos || tripPhotos.all.length === 0) return [];
 
-    const sortedByDate = [...tripPhotos].sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const sortedByDate = tripPhotos.sortByKey("time").all;
 
     const count = Math.min(10, sortedByDate.length);
     if (count === sortedByDate.length) return sortedByDate;
@@ -97,7 +98,9 @@ function Trip({ trip, onClick }: TripProps) {
           </p>
           <div className="flex gap-2 text-2xl">
             {countries.map((c) => (
-              <p className="hover:scale-110 transition-all">{getFlagEmoji(c.code)}</p>
+              <p className="hover:scale-110 transition-all">
+                {getFlagEmoji(c.code)}
+              </p>
             ))}
           </div>
         </div>
@@ -121,13 +124,9 @@ interface TripThumnailImageProps {
 }
 
 function TripThumbnailImage({ photo }: TripThumnailImageProps) {
-  const url = useMemo(() => {
-    return api.getThumbnailUrl(photo.filename);
-  }, [photo.id]);
-
   return (
     <img
-      src={url}
+      src={photo.thumbnailUrl}
       alt={photo.description || "Trip photo"}
       className="w-16 h-16 object-cover rounded"
     />

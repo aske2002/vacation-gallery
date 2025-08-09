@@ -7,17 +7,18 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Map } from "lucide-react";
+import { CalendarCheck, CalendarIcon, CalendarPlus, Map } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { PhotoPreview } from "@/components/dialogs/photo-preview-dialog";
 import FAB from "@/components/ui/fab";
 import MapDialog from "@/components/dialogs/map-dialog";
-import {
-  useTripPhotos,
-} from "@/hooks/useVacationGalleryApi";
+import { useTripPhotos } from "@/hooks/useVacationGalleryApi";
 import { api } from "@/api/api";
 import PhotoGrid from "@/components/photo-grid";
-import { Photo } from "@common/types/photo";
-import MapComponentOSM from "@/components/map-component-osm";
+import { PhotoType } from "@common/types/photo";
+import MapComponent from "@/components/osm/map-component";
+import formatDate from "@/lib/format-date";
+import { Photo } from "@/lib/photo-sorting";
 
 export const Route = createFileRoute("/$tripId")({
   component: Index,
@@ -35,33 +36,53 @@ function Index() {
     <div className="grow w-full flex flex-col gap-4">
       <MapDialog
         open={showMap}
+        tripId={tripId}
         onClose={() => setShowMap(false)}
         onClickPhoto={setSelectedPhoto}
       />
       <Card className="pb-0 overflow-hidden">
         <CardHeader>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between gap-2">
             <div>
               <CardTitle>{trip.name}</CardTitle>
               <CardDescription>{trip.description}</CardDescription>
             </div>
+            <div className="flex flex-col gap-2">
+              <Badge className="bg-blue-600 text-white">
+                <CalendarPlus />
+                <span>{formatDate(trip.start_date)}</span>
+              </Badge>
+              {trip.end_date && (
+                <Badge variant="outline">
+                  <CalendarCheck />
+                  <span>{formatDate(trip.end_date)}</span>
+                </Badge>
+              )}
             </div>
+          </div>
         </CardHeader>
         <CardContent className="h-96 p-0">
-          <MapComponentOSM onClickPhoto={setSelectedPhoto}></MapComponentOSM>
+          <MapComponent
+            tripId={tripId}
+            onClickPhoto={setSelectedPhoto}
+          ></MapComponent>
         </CardContent>
       </Card>
 
       <PhotoGrid
         onClickPhoto={setSelectedPhoto}
-        photos={photos || []}
+        photos={photos}
         loading={isLoading}
       />
 
-      <PhotoPreview
-        selectedPhoto={selectedPhoto}
-        onClose={() => setSelectedPhoto(null)}
-      />
+      {photos && (
+        <PhotoPreview
+          selectedPhoto={selectedPhoto}
+          onChangePhoto={setSelectedPhoto}
+          collection={photos}
+          onClose={() => setSelectedPhoto(null)}
+        />
+      )}
       <FAB Icon={Map} wiggle onClick={() => setShowMap(true)} />
     </div>
   );

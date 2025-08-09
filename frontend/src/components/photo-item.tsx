@@ -11,10 +11,10 @@ import {
   useTripsWithPhotoCounts,
   useUpdatePhoto,
 } from "@/hooks/useVacationGalleryApi";
-import { getMediumLocation } from "@/lib/location-utils";
-import { Photo, PhotoEditableMetadata } from "@common/types/photo";
+import { PhotoType, PhotoEditableMetadata } from "@common/types/photo";
 import PhotoEditForm from "./photo-edit-form";
 import { useForm } from "react-hook-form";
+import { Photo } from "@/lib/photo-sorting";
 
 interface PhotoItemProps {
   item: Photo;
@@ -67,12 +67,12 @@ export default function PhotoItem({
   useEffect(() => {
     reset({
       value: {
-        latitude: item.latitude,
-        longitude: item.longitude,
-        altitude: item.altitude,
+        latitude: item.coordinates?.latitude,
+        longitude: item.coordinates?.longitude,
+        altitude: item.coordinates?.altitude,
         description: item.description || "",
         title: item.title || "",
-        taken_at: item.created_at,
+        taken_at: item.timeISO,
       },
     });
   }, [item]);
@@ -80,7 +80,7 @@ export default function PhotoItem({
   const { value } = watch();
 
   const formattedAddress = useMemo(() => {
-    return getMediumLocation(item);
+    return item.mediumLocation;
   }, [item]);
 
   return (
@@ -170,7 +170,7 @@ export default function PhotoItem({
                 <MapPin className="w-3 h-3 flex-shrink-0" />
                 <span
                   className="truncate cursor-help"
-                  title={item.location_name || formattedAddress}
+                  title={item.fullLocation}
                 >
                   {formattedAddress}
                 </span>
@@ -178,9 +178,7 @@ export default function PhotoItem({
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
-                  {item.taken_at
-                    ? dayjs(item.taken_at).format("MMM D, YYYY")
-                    : dayjs(item.created_at).format("MMM D, YYYY")}
+                  {item.formattedTime}
                 </div>
               </div>
             </div>

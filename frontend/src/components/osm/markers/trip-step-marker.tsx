@@ -1,27 +1,29 @@
 import { TripStep } from "@/types/trip";
-import { Marker } from "react-leaflet";
+import { Marker, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import { useMemo, useCallback } from "react";
+import { RouteStop } from "@common/types/route";
+import { MapZIndexes } from "@/lib/map-indexes";
 
-interface TripStepMarkerOSMProps {
-  step: TripStep;
+interface TripStepMarkerProps {
+  stop: RouteStop;
   index: number;
-  handleClick?: (step: TripStep) => void;
+  handleClick?: (step: RouteStop) => void;
 }
 
 export default function TripStepMarkerOSM({
-  step,
+  stop,
   handleClick,
-  index
-}: TripStepMarkerOSMProps) {
-  const position: [number, number] = useMemo(() => [
-    step.coordinates.lat,
-    step.coordinates.lon,
-  ], [step.coordinates]);
+  index,
+}: TripStepMarkerProps) {
+  const position: [number, number] = useMemo(
+    () => [stop.latitude, stop.longitude],
+    [stop]
+  );
 
   const onClick = useCallback(() => {
-    handleClick?.(step);
-  }, [handleClick, step]);
+    handleClick?.(stop);
+  }, [handleClick, stop]);
 
   const stepIcon = useMemo(() => {
     return L.divIcon({
@@ -32,7 +34,7 @@ export default function TripStepMarkerOSM({
           </div>
         </div>
       </div>`,
-      className: 'trip-step-marker-container',
+      className: "trip-step-marker-container",
       iconSize: [24, 24],
       iconAnchor: [12, 12],
       popupAnchor: [0, -12],
@@ -43,11 +45,16 @@ export default function TripStepMarkerOSM({
     <Marker
       position={position}
       icon={stepIcon}
-      zIndexOffset={-100}
+      zIndexOffset={MapZIndexes.stop}
       eventHandlers={{
         click: onClick,
       }}
-    />
+    >
+      <Tooltip direction="top" offset={[0, -12]} opacity={1} permanent={false}>
+        <h1 className="text-md font-bold">{stop.title}</h1>
+        <p>{stop.description}</p>
+      </Tooltip>
+    </Marker>
   );
 }
 
@@ -56,6 +63,7 @@ const tripStepMarkerStyles = `
   .trip-step-marker-container {
     background: transparent !important;
     border: none !important;
+    z-index: ${MapZIndexes.stop};
   }
 
   .trip-step-marker {
@@ -105,9 +113,12 @@ const tripStepMarkerStyles = `
 `;
 
 // Inject styles only once
-if (typeof document !== 'undefined' && !document.getElementById('osm-trip-step-marker-styles')) {
-  const styleElement = document.createElement('style');
-  styleElement.id = 'osm-trip-step-marker-styles';
+if (
+  typeof document !== "undefined" &&
+  !document.getElementById("osm-trip-step-marker-styles")
+) {
+  const styleElement = document.createElement("style");
+  styleElement.id = "osm-trip-step-marker-styles";
   styleElement.textContent = tripStepMarkerStyles;
   document.head.appendChild(styleElement);
 }

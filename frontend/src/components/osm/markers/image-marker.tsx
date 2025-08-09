@@ -1,21 +1,20 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import Supercluster, { ClusterProperties, PointFeature } from "supercluster";
 import { useSupercluster } from "../../../hooks/use-supercluster";
 import { Feature, FeatureCollection, Point } from "geojson";
-import { Marker, useMapEvents } from "react-leaflet";
-import { Badge } from "../../ui/badge";
-import { api } from "@/api/api";
-import { Photo } from "@common/types/photo";
-import L from "leaflet";
+import { Marker } from "react-leaflet";
+import L, { LatLngExpression } from "leaflet";
+import { Photo } from "@/lib/photo-sorting";
+import { MapZIndexes } from "@/lib/map-indexes";
 
 const clusterTranslation = 8;
 
-type ClusteredMarkersOSMProps = {
+type ClusteredMarkersProps = {
   geojson: FeatureCollection<Point, Photo>;
   setNumClusters: (n: number) => void;
   setInfowindowData: (
     data: {
-      position: [number, number];
+      position: LatLngExpression;
       features: Feature<Point, Photo>[];
     } | null
   ) => void;
@@ -31,7 +30,7 @@ export const ClusteredMarkersOSM = ({
   geojson,
   setNumClusters,
   setInfowindowData,
-}: ClusteredMarkersOSMProps) => {
+}: ClusteredMarkersProps) => {
   const { clusters, getLeaves } = useSupercluster(geojson, superclusterOptions);
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export const ClusteredMarkersOSM = ({
   }, [setNumClusters, clusters.length]);
 
   const handleClusterClick = useCallback(
-    (position: [number, number], clusterId: number) => {
+    (position: LatLngExpression, clusterId: number) => {
       const leaves = getLeaves(clusterId);
       setInfowindowData({ position, features: leaves });
     },
@@ -47,7 +46,7 @@ export const ClusteredMarkersOSM = ({
   );
 
   const handleMarkerClick = useCallback(
-    (position: [number, number], featureId: string) => {
+    (position: LatLngExpression, featureId: string) => {
       const feature = clusters.find((feat) => feat.id === featureId) as Feature<
         Point,
         Photo
@@ -91,15 +90,16 @@ export const ClusteredMarkersOSM = ({
 interface PhotoMarkerOSMProps {
   photo: Photo;
   featureId: string;
-  onMarkerClick?: (
-    position: [number, number],
-    featureId: string
-  ) => void;
+  onMarkerClick?: (position: LatLngExpression, featureId: string) => void;
 }
 
-const PhotoMarkerOSM = ({ photo, onMarkerClick, featureId }: PhotoMarkerOSMProps) => {
-  const position: [number, number] = useMemo(() => {
-    return [photo.latitude || 0, photo.longitude || 0];
+const PhotoMarkerOSM = ({
+  photo,
+  onMarkerClick,
+  featureId,
+}: PhotoMarkerOSMProps) => {
+  const position = useMemo((): LatLngExpression => {
+    return photo.latLng || [0, 0];
   }, [photo]);
 
   const handleClick = useCallback(() => {
@@ -109,7 +109,7 @@ const PhotoMarkerOSM = ({ photo, onMarkerClick, featureId }: PhotoMarkerOSMProps
   const photoIcon = useMemo(() => {
     return L.divIcon({
       html: createPhotoPin(photo),
-      className: 'photo-marker-container',
+      className: "photo-marker-container",
       iconSize: [56, 56],
       iconAnchor: [28, 28],
       popupAnchor: [0, -28],
@@ -119,6 +119,7 @@ const PhotoMarkerOSM = ({ photo, onMarkerClick, featureId }: PhotoMarkerOSMProps
   return (
     <Marker
       position={position}
+      zIndexOffset={MapZIndexes.photo}
       icon={photoIcon}
       eventHandlers={{
         click: handleClick,
@@ -131,10 +132,7 @@ interface PhotoClusterMarkerOSMProps {
   photos: PointFeature<Photo>[];
   position: [number, number];
   clusterId: number;
-  onMarkerClick?: (
-    position: [number, number],
-    clusterId: number
-  ) => void;
+  onMarkerClick?: (position: [number, number], clusterId: number) => void;
   size: number;
   sizeAsText: string;
 }
@@ -155,21 +153,22 @@ const PhotoClusterMarkerOSM = ({
 
   const clusterIcon = useMemo(() => {
     const photoPins = firstThreePhotos
-      .map((photo, index) => 
-        `<div class="cluster-photo" style="transform: translate(${index * clusterTranslation}px, ${index * clusterTranslation}px); z-index: ${size - index};">
+      .map(
+        (photo, index) =>
+          `<div class="cluster-photo" style="transform: translate(${index * clusterTranslation}px, ${index * clusterTranslation}px); z-index: ${size - index};">
           ${createPhotoPin(photo.properties)}
         </div>`
       )
-      .join('');
+      .join("");
 
     return L.divIcon({
-      html: `<div class="photo-cluster-container">
+      html: `<div class="photo-cluster-container hover:opacity-70 transition-opacity">
         ${photoPins}
         <div class="cluster-badge">
           <span class="badge-content">+${photos.length}</span>
         </div>
       </div>`,
-      className: 'photo-cluster-marker',
+      className: "photo-cluster-marker",
       iconSize: [markerSize, markerSize],
       iconAnchor: [markerSize / 2, markerSize / 2],
       popupAnchor: [0, -markerSize / 2],
@@ -179,6 +178,7 @@ const PhotoClusterMarkerOSM = ({
   return (
     <Marker
       position={position}
+      zIndexOffset={MapZIndexes.photo}
       icon={clusterIcon}
       eventHandlers={{
         click: handleClick,
@@ -189,9 +189,8 @@ const PhotoClusterMarkerOSM = ({
 
 // Helper function to create photo pin HTML
 function createPhotoPin(photo: Photo): string {
-  const url = api.getThumbnailUrl(photo.filename);
   return `<div class="photo-pin">
-    <img src="${url}" class="photo-pin-image" alt="Photo" />
+    <img src="${photo.thumbnailUrl}" class="photo-pin-image" alt="Photo" />
   </div>`;
 }
 
@@ -205,6 +204,7 @@ const markerStyles = `
   .photo-cluster-marker {
     background: transparent !important;
     border: none !important;
+    z-index: ${MapZIndexes.photo};
   }
 
   .photo-pin {
@@ -269,9 +269,12 @@ const markerStyles = `
 `;
 
 // Inject styles only once
-if (typeof document !== 'undefined' && !document.getElementById('osm-marker-styles')) {
-  const styleElement = document.createElement('style');
-  styleElement.id = 'osm-marker-styles';
+if (
+  typeof document !== "undefined" &&
+  !document.getElementById("osm-marker-styles")
+) {
+  const styleElement = document.createElement("style");
+  styleElement.id = "osm-marker-styles";
   styleElement.textContent = markerStyles;
   document.head.appendChild(styleElement);
 }

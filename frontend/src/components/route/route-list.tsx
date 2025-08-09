@@ -1,27 +1,21 @@
-import React, { useState, useEffect } from "react";
-import {
-  Plus,
-  MapPin,
-  Navigation,
-  Settings,
-  Clock,
-  Ruler,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { Plus, MapPin, Navigation, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { api } from "@/api/api";
-import { Route, RouteWithStops } from "@common/types/route";
+import { Route } from "@common/types/route";
 import { toast } from "sonner";
+import {
+  useCreateRoute,
+  useDeleteRoute,
+  useTripRoutes,
+} from "@/hooks/useVacationGalleryApi";
+import { DefaultLoader } from "../default-loader";
+import { LoadingButton } from "../loading-button";
+import { useNavigate } from "@tanstack/react-router";
 
 interface RouteListProps {
   tripId: string;
-  onCreateRoute?: () => void;
-  onEditRoute?: (routeId: string) => void;
-  refreshTrigger?: number;
 }
 
 const transportationProfiles = [
@@ -36,35 +30,17 @@ const transportationProfiles = [
   { value: "wheelchair", label: "Wheelchair", icon: "♿" },
 ];
 
-export function RouteList({
-  tripId,
-  onCreateRoute,
-  onEditRoute,
-  refreshTrigger,
-}: RouteListProps) {
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function RouteList({ tripId }: RouteListProps) {
+  const navigate = useNavigate();
 
-  const loadRoutes = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const routesData = await api.getTripRoutes(tripId);
-      setRoutes(routesData);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to load routes";
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadRoutes();
-  }, [tripId, refreshTrigger]);
+  const createRouteMutation = useCreateRoute();
+  const deleteRouteMutation = useDeleteRoute();
+  const {
+    isLoading,
+    error,
+    data: routes,
+    refetch: refetchRoutes,
+  } = useTripRoutes(tripId);
 
   const formatDistance = (meters?: number) => {
     if (!meters) return "Unknown";
@@ -93,8 +69,13 @@ export function RouteList({
 
   const handleEditRoute = async (route: Route) => {
     try {
-      const routeWithStops = await api.getRouteById(route.id);
-      onEditRoute?.(routeWithStops.id);
+      navigate({
+        to: "/admin/$tripId/$routeId",
+        params: {
+          routeId: route.id,
+          tripId: route.trip_id,
+        },
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to load route details";
@@ -112,14 +93,23 @@ export function RouteList({
     }
 
     try {
-      await api.deleteRoute(routeId);
+      await deleteRouteMutation.mutateAsync(routeId);
       toast.success("Route deleted successfully");
-      loadRoutes(); // Refresh the list
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to delete route";
       toast.error(errorMessage);
     }
+  };
+
+  const handleCreateRoute = async () => {
+    const { id } = await createRouteMutation.mutateAsync({
+      trip_id: tripId,
+      title: "My New Route",
+      description: "",
+      profile: "driving-car",
+      stops: [],
+    });
   };
 
   if (isLoading) {
@@ -128,8 +118,7 @@ export function RouteList({
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Loading routes...</p>
+              <DefaultLoader />
             </div>
           </div>
         </CardContent>
@@ -141,11 +130,11 @@ export function RouteList({
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          {error}
+          {error.message}
           <Button
             variant="outline"
             size="sm"
-            onClick={loadRoutes}
+            onClick={() => refetchRoutes()}
             className="ml-2"
           >
             Retry
@@ -157,20 +146,18 @@ export function RouteList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Navigation className="h-5 w-5" />
-          Routes ({routes.length})
-        </h2>
-        {onCreateRoute && (
-          <Button onClick={onCreateRoute} size="sm">
-            <Plus className="h-4 w-4 mr-1" />
-            Create Route
-          </Button>
-        )}
+      <div>
+        <LoadingButton
+          onClick={handleCreateRoute}
+          size="sm"
+          loading={createRouteMutation.isPending}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Create Route
+        </LoadingButton>
       </div>
 
-      {routes.length === 0 ? (
+      {routes?.length === 0 ? (
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
@@ -182,18 +169,19 @@ export function RouteList({
                 Create your first route to plan your journey with multiple
                 stops.
               </p>
-              {onCreateRoute && (
-                <Button onClick={onCreateRoute}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Create First Route
-                </Button>
-              )}
+              <LoadingButton
+                onClick={handleCreateRoute}
+                loading={createRouteMutation.isPending}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Create First Route
+              </LoadingButton>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {routes.map((route) => {
+        <div className="flex flex-wrap">
+          {routes?.map((route) => {
             const profileInfo = getProfileInfo(route.profile);
             return (
               <Card
@@ -204,16 +192,14 @@ export function RouteList({
                   <CardTitle className="text-base flex items-start justify-between">
                     <span className="flex-1 truncate">{route.title}</span>
                     <div className="flex items-center gap-1 ml-2">
-                      {onEditRoute && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditRoute(route)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditRoute(route)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -247,30 +233,11 @@ export function RouteList({
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-600">Stops:</span>
-                        <span className="font-medium">Coming soon</span>
+                        <span className="text-gray-600">
+                          {route.stops.length} Stops
+                        </span>
                       </div>
                     </div>
-
-                    {route.total_distance && (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Ruler className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-600">Distance:</span>
-                        <span className="font-medium">
-                          {formatDistance(route.total_distance)}
-                        </span>
-                      </div>
-                    )}
-
-                    {route.total_duration && (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium">
-                          {formatDuration(route.total_duration)}
-                        </span>
-                      </div>
-                    )}
                   </div>
 
                   <div className="text-xs text-gray-500 border-t pt-2">

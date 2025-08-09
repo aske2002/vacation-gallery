@@ -11,11 +11,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider } from "./hooks/useVacationAuth";
 import "leaflet/dist/leaflet.css";
+import "./components/osm/zoom-controller"
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 0,
+      retry: 1,
     },
   },
 });

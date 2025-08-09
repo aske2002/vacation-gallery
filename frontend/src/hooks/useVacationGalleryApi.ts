@@ -8,22 +8,23 @@ import {
 } from "@tanstack/react-query";
 import {
   api,
-  UpdateTripRequest,
   UploadResponse,
   TripWithPhotoCount,
   UploadPhotosRequest,
 } from "../api/api";
-import { Photo } from "@common/types/photo";
+import { PhotoType } from "@common/types/photo";
 import { UpdatePhotoRequest } from "@common/types/request/update-photo-request";
 import { CreateTripRequest } from "@common/types/request/create-trip-request";
-import { Trip } from "@common/types/trip";
-import { Route, RouteStop, RouteWithStops } from "@common/types/route";
+import { Trip, UpdateTripRequest } from "@common/types/trip";
+import { Route, RouteStop } from "@common/types/route";
 import {
   CreateRouteRequest,
   UpdateRouteRequest,
   UpdateRouteStop,
 } from "@common/types/request/create-route-request";
 import { queryClient } from "@/main";
+import { da } from "date-fns/locale";
+import { Photo, PhotoCollection } from "@/lib/photo-sorting";
 
 type QueryWithOldData<T> = {
   oldData: T | undefined;
@@ -76,7 +77,7 @@ const queryUpdaters = {
   route: (updatedRoute: Partial<Route> & { trip_id: string; id: string }) => {
     queryClient.setQueryData(
       queryKeys.route(updatedRoute.id),
-      (oldRoute: RouteWithStops | undefined) => ({
+      (oldRoute: Route | undefined) => ({
         ...oldRoute,
         ...updatedRoute,
       })
@@ -131,7 +132,7 @@ const queryUpdaters = {
     );
     queryClient.setQueryData(
       queryKeys.route(updatedStop.route_id),
-      (oldRoute: RouteWithStops | undefined) => {
+      (oldRoute: Route | undefined) => {
         if (!oldRoute) return undefined;
         return {
           ...oldRoute,
@@ -164,20 +165,22 @@ const queryDeleters = {
     );
     queryClient.setQueryData(
       queryKeys.photos,
-      (oldPhotos: Photo[] | undefined) => {
+      (oldPhotos: PhotoType[] | undefined) => {
         return oldPhotos?.filter((photo) => photo.trip_id !== tripId);
       }
     );
   },
   route: (routeId: string) => {
+    const data = queryClient.getQueryData<Route>(queryKeys.route(routeId));
     queryClient.removeQueries({ queryKey: queryKeys.route(routeId) });
     queryClient.removeQueries({ queryKey: queryKeys.routeStops(routeId) });
-    queryClient.setQueryData(
-      queryKeys.tripRoutes(routeId),
-      (oldRoutes: Route[] | undefined) => {
-        return oldRoutes?.filter((route) => route.id !== routeId);
-      }
-    );
+    data &&
+      queryClient.setQueryData(
+        queryKeys.tripRoutes(data.trip_id),
+        (oldRoutes: Route[] | undefined) => {
+          return oldRoutes?.filter((route) => route.id !== routeId);
+        }
+      );
     queryClient.setQueryData(
       queryKeys.routes,
       (oldRoutes: Route[] | undefined) => {
@@ -189,7 +192,7 @@ const queryDeleters = {
     queryClient.removeQueries({ queryKey: queryKeys.routeStops(routeId) });
     queryClient.setQueryData(
       queryKeys.route(routeId),
-      (oldRoute: RouteWithStops | undefined) => {
+      (oldRoute: Route | undefined) => {
         if (!oldRoute) return undefined;
         return {
           ...oldRoute,
@@ -266,35 +269,58 @@ export function useDeleteTrip(): UseMutationResult<void, Error, string> {
 }
 
 // Photos Hooks
-export function usePhotos(): UseQueryResult<Photo[], Error> {
-  return useQuery({
+export function usePhotos(): Omit<
+  UseQueryResult<any | undefined, Error>,
+  "data"
+> & {
+  data?: PhotoCollection | undefined;
+} {
+  const queryData = useQuery({
     experimental_prefetchInRender: true, // This is a React Query feature to prefetch data
     queryKey: queryKeys.photos,
     queryFn: () => api.getAllPhotos(),
   });
+  return {
+    ...queryData,
+    data: queryData.data ? new PhotoCollection(queryData.data) : undefined,
+  };
 }
 
-export function useTripPhotos(
-  tripId: string | null
-): UseQueryResult<Photo[] | undefined, Error> {
-  return useQuery({
+export function useTripPhotos(tripId: string | null): Omit<
+  UseQueryResult<any | undefined, Error>,
+  "data"
+> & {
+  data?: PhotoCollection | undefined;
+} {
+  const queryData = useQuery({
     queryKey: queryKeys.tripPhotos(tripId!),
     queryFn: () => api.getTripPhotos(tripId!),
     enabled: !!tripId,
   });
+  return {
+    ...queryData,
+    data: queryData.data ? new PhotoCollection(queryData.data) : undefined,
+  };
 }
 
-export function usePhoto(
-  id: string | null
-): UseQueryResult<Photo | undefined, Error> {
-  return useQuery({
+export function usePhoto(id: string | null): Omit<
+  UseQueryResult<any | undefined, Error>,
+  "data"
+> & {
+  data?: Photo | undefined;
+} {
+  const queryData = useQuery({
     queryKey: queryKeys.photo(id!),
     queryFn: () => api.getPhotoById(id!),
     enabled: !!id,
   });
+  return {
+    ...queryData,
+    data: queryData.data ? new Photo(queryData.data) : undefined,
+  };
 }
 
-export function usePhotosWithCoordinates(): UseQueryResult<Photo[], Error> {
+export function usePhotosWithCoordinates(): UseQueryResult<PhotoType[], Error> {
   return useQuery({
     queryKey: queryKeys.photosWithCoordinates,
     queryFn: () => api.getPhotosWithCoordinates(),
@@ -332,7 +358,7 @@ export function useUploadPhotos(): UseMutationResult<
 }
 
 export function useUpdatePhoto(): UseMutationResult<
-  Photo,
+  PhotoType,
   Error,
   UpdatePhotoRequest
 > {
@@ -427,44 +453,6 @@ export function useHealthCheck(): UseQueryResult<
   });
 }
 
-// Search Hook with debouncing
-export function usePhotoSearch(query: string, debounceMs: number = 300) {
-  return useQuery({
-    queryKey: ["photos", "search", query],
-    queryFn: () => api.searchPhotos(query),
-    enabled: query.length >= 3, // Only search if query is at least 3 characters
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-// Geographic search hook
-export function usePhotosByLocation(
-  bounds: {
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-  } | null
-) {
-  return useQuery({
-    queryKey: ["photos", "location", bounds],
-    queryFn: () => api.getPhotosByLocation(bounds!),
-    enabled: !!bounds,
-  });
-}
-
-// Date range search hook
-export function usePhotosByDateRange(
-  startDate: string | null,
-  endDate: string | null
-) {
-  return useQuery({
-    queryKey: ["photos", "date-range", startDate, endDate],
-    queryFn: () => api.getPhotosByDateRange(startDate!, endDate!),
-    enabled: !!(startDate && endDate),
-  });
-}
-
 // Routes Hooks
 export function useRoutes(): UseQueryResult<Route[], Error> {
   return useQuery({
@@ -475,7 +463,7 @@ export function useRoutes(): UseQueryResult<Route[], Error> {
 
 export function useRoute(
   id: string | null
-): UseQueryResult<RouteWithStops | undefined, Error> {
+): UseQueryResult<Route | undefined, Error> {
   return useQuery({
     queryKey: queryKeys.route(id!),
     queryFn: () => api.getRouteById(id!),
@@ -504,7 +492,7 @@ export function useRouteStops(
 }
 
 export function useCreateRoute(): UseMutationResult<
-  RouteWithStops,
+  Route,
   Error,
   CreateRouteRequest
 > {
@@ -515,11 +503,19 @@ export function useCreateRoute(): UseMutationResult<
     onSuccess: (newRoute) => {
       queryUpdaters.route(newRoute);
     },
+    onSettled: (_, __, { trip_id }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tripRoutes(trip_id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.routes,
+      });
+    },
   });
 }
 
 export function useUpdateRoute(): UseMutationResult<
-  RouteWithStops,
+  Route,
   Error,
   { id: string; data: UpdateRouteRequest }
 > {
@@ -530,6 +526,15 @@ export function useUpdateRoute(): UseMutationResult<
       api.updateRoute(id, data),
     onSuccess: (updatedRoute) => {
       queryUpdaters.route(updatedRoute);
+    },
+    onSettled: (_, __, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.route(id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tripRoutes(id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.routes,
+      });
     },
   });
 }
@@ -542,11 +547,14 @@ export function useDeleteRoute(): UseMutationResult<void, Error, string> {
     onSuccess: (_, routeId) => {
       queryDeleters.route(routeId);
     },
+    onSettled: (_, __, routeId) => {
+      queryClient.refetchQueries({ queryKey: queryKeys.routes });
+    },
   });
 }
 
 export function useCreateRouteStop(): UseMutationResult<
-  RouteWithStops,
+  Route,
   Error,
   {
     routeId: string;
@@ -560,11 +568,22 @@ export function useCreateRouteStop(): UseMutationResult<
     onSuccess: (route) => {
       queryUpdaters.route(route);
     },
+    onSettled: (_, __, { routeId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.routeStops(routeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.route(routeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tripRoutes(routeId),
+      });
+    },
   });
 }
 
 export function useUpdateRouteStop(): UseMutationResult<
-  RouteWithStops,
+  Route,
   Error,
   { routeId: string; stopId: string; data: UpdateRouteStop }
 > {
@@ -575,11 +594,22 @@ export function useUpdateRouteStop(): UseMutationResult<
     onSuccess: (updatedRoute) => {
       queryUpdaters.route(updatedRoute);
     },
+    onSettled: (_, __, { routeId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.routeStops(routeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.route(routeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tripRoutes(routeId),
+      });
+    },
   });
 }
 
 export function useDeleteRouteStop(): UseMutationResult<
-  RouteWithStops,
+  Route,
   Error,
   { routeId: string; stopId: string }
 > {
@@ -587,6 +617,17 @@ export function useDeleteRouteStop(): UseMutationResult<
     mutationFn: ({ routeId, stopId }) => api.deleteRouteStop(routeId, stopId),
     onSuccess: (_, { routeId, stopId }) => {
       queryDeleters.routeStop(routeId, stopId);
+    },
+    onSettled: (_, __, { routeId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.routeStops(routeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.route(routeId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tripRoutes(routeId),
+      });
     },
   });
 }

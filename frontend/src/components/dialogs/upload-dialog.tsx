@@ -62,12 +62,7 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
   const [previewFiles, setPreviewFiles] = useState<UploadFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [showEditForm, setShowEditForm] = useState(false);
-  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [useOriginalFiles, setUseOriginalFiles] = useState(false);
-
-  // Batch metadata
-  const [batchTitle, setBatchTitle] = useState("");
-  const [batchDescription, setBatchDescription] = useState("");
 
   const { mutateAsync: uploadPhotos, isPending } = useUploadPhotos();
 
@@ -119,23 +114,11 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
     }
   }, [files]);
 
-  const startEditing = () => {
-    setShowEditForm(true);
-  };
-
-  const cancelEdit = () => {
-    setShowEditForm(false);
-  };
-
-  const handleEditSubmit = async (formdata: {
-    value: PhotoEditableMetadata;
-  }) => {};
-
   const {
     watch,
     setValue,
-    handleSubmit,
     reset,
+    handleSubmit,
     formState: { isDirty, isValid },
   } = useForm<{
     value: PhotoEditableMetadata;
@@ -258,7 +241,7 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
     }
   };
 
-  const applyBatchMetadata = () => {
+  const applyBatchMetadata = (data: { value: PhotoEditableMetadata }) => {
     if (selectedFiles.size === 0) {
       toast.error("Please select files to apply batch metadata");
       return;
@@ -269,8 +252,10 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
         if (selectedFiles.has(file.id)) {
           return {
             ...file,
-            title: batchTitle.trim() || file.title,
-            description: batchDescription.trim() || file.description,
+            metadata: {
+              ...file.metadata,
+              ...data.value,
+            },
           };
         }
         return file;
@@ -280,8 +265,6 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
     toast.success(`Applied metadata to ${selectedFiles.size} file(s)`);
     setSelectedFiles(new Set());
     setShowEditForm(false);
-    setBatchTitle("");
-    setBatchDescription("");
   };
 
   const formatFileSize = (bytes: number) => {
@@ -294,14 +277,16 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
 
   useEffect(() => {
     if (showEditForm) {
-      const firstSelected = previewFiles.find(f => f.id && f.id == Array.from(selectedFiles).at(0))
+      const firstSelected = previewFiles.find(
+        (f) => f.id && f.id == Array.from(selectedFiles).at(0)
+      );
       if (firstSelected) {
         reset({
-          value: firstSelected.metadata
-        })
+          value: firstSelected.metadata,
+        });
       }
     }
-  }, [showEditForm])
+  }, [showEditForm]);
 
   return (
     <>
@@ -387,7 +372,7 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={applyBatchMetadata}
+                    onClick={handleSubmit(applyBatchMetadata)}
                     disabled={isPending}
                   >
                     Apply Changes

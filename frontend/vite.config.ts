@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { searchForWorkspaceRoot } from "vite";
 import path from "path";
 import wasm from "vite-plugin-wasm";
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 const cache = new Map<string, { body: Buffer; contentType?: string }>();
 
@@ -62,6 +63,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     cachingMiddlewarePlugin(), // 👈 Inject the middleware plugin here
+    nodePolyfills()
   ],
   optimizeDeps: {
     exclude: ["libraw-wasm"]

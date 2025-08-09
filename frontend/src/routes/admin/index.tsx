@@ -21,7 +21,7 @@ function RouteComponent() {
   const { data: allTrips, isLoading } = useTripsWithPhotoCounts();
   const [creatingTrip, setCreatingTrip] = useState(false);
   const {
-    mutateAsync: deleteTrip,
+    mutateAsync: deleteTripMutation,
     isPending: isDeletingTrip,
     variables: deletingId,
   } = useDeleteTrip();
@@ -82,7 +82,7 @@ function RouteComponent() {
                           "Are you sure you want to delete this trip? This action cannot be undone."
                         )
                       ) {
-                        deleteTrip(trip.id);
+                        deleteTripMutation(trip.id);
                       }
                     }}
                   >

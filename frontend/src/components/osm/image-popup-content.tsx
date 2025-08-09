@@ -2,25 +2,25 @@ import { Feature, Point } from "geojson";
 import { useMemo } from "react";
 import LoadingImage from "../loading-image";
 import { Popup } from "react-leaflet";
-import { api } from "@/api/api";
-import { Photo } from "@common/types/photo";
 import { findCommonDenominatorAndBroader } from "@/lib/extract-common-location";
+import { Photo } from "@/lib/photo-sorting";
+import { LatLngExpression } from "leaflet";
 
-interface ImagePopupContentOSMProps {
+interface ImagePopupContentProps {
   items: Feature<Point, Photo>[];
-  position: [number, number];
+  position: LatLngExpression;
   onClickPhoto?: (item: Photo) => void;
   onClose?: () => void;
   isOpen: boolean;
 }
 
-export default function ImagePopupContentOSM({
+export default function ImagePopupContent({
   items,
   position,
   onClickPhoto,
   onClose,
   isOpen,
-}: ImagePopupContentOSMProps) {
+}: ImagePopupContentProps) {
   const title = useMemo(() => {
     return findCommonDenominatorAndBroader(items.map((i) => i.properties)).join(
       ", "
@@ -46,7 +46,7 @@ export default function ImagePopupContentOSM({
         </div>
         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 max-h-96 overflow-y-auto">
           {items.map((item) => (
-            <ImagePopupItemOSM
+            <ImagePopupItem
               onClick={() => onClickPhoto?.(item.properties)}
               key={item.id}
               item={item.properties}
@@ -58,19 +58,22 @@ export default function ImagePopupContentOSM({
   );
 }
 
-interface ImagePopupItemOSMProps {
+interface ImagePopupItemProps {
   item: Photo;
   onClick?: () => void;
 }
 
-function ImagePopupItemOSM({ item, onClick: onSelect }: ImagePopupItemOSMProps) {
+function ImagePopupItem({
+  item,
+  onClick: onSelect,
+}: ImagePopupItemProps) {
   return (
     <LoadingImage
       key={item.id}
       src={item}
       onClick={() => onSelect?.()}
       className={
-        "mb-4 w-full rounded-md shadow min-h-32 cursor-pointer hover:opacity-80 transition-opacity"
+        "mb-4 w-full rounded-md shadow cursor-pointer hover:opacity-80 transition-opacity"
       }
     />
   );
