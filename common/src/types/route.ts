@@ -45,9 +45,6 @@ export interface Route {
     | "wheelchair";
   created_at: string;
   updated_at: string;
-}
-
-export interface RouteWithStops extends Route {
   stops: RouteStop[];
   segments: RouteSegment[];
 }

@@ -3,6 +3,7 @@
 export interface Coordinate {
   latitude: number;
   longitude: number;
+  altitude?: number; // Optional altitude
 }
 
 export interface RouteRequest {

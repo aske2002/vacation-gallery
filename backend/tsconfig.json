@@ -4,7 +4,12 @@
     "module": "commonjs",
     "outDir": "./dist",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "types": ["node"]
   },
-  "include": ["src/**/*", "../common/src"]
+  "include": [
+    "src/**/*.ts", // Include all TS files in backend
+    "../common/src/**/*.ts" // Include TS files from the common directory
+  ]
 }

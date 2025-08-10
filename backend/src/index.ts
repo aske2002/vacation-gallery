@@ -6,12 +6,13 @@ import photoRoutes from "./photo-routes";
 import authRoutes from "./auth-routes";
 import openrouteRoutes from "./openroute-routes";
 import routeRoutes from "./route-routes";
+import flightRoutes from "./flight-routes";
 import { database } from "./database";
 import { configDotenv } from "dotenv";
 
 configDotenv({
   path: path.resolve(__dirname, "../.env"),
-})
+});
 
 const app = express();
 const PORT = 1798;
@@ -28,7 +29,7 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
   res.json({
-    message: "Vacation Gallery API is running!",
+    message: "Vacation Gallery API is running 2!",
     timestamp: new Date().toISOString(),
   });
 });
@@ -39,6 +40,15 @@ app.use("/api", tripRoutes);
 app.use("/api", photoRoutes);
 app.use("/api", routeRoutes);
 app.use("/api/openroute", openrouteRoutes);
+app.use("/api/flight", flightRoutes);
+
+// Serve static frontend files from public
+app.use(express.static(path.join(__dirname, "../public")));
+
+// Optional: serve index.html for SPA routes
+app.get("*any", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
+});
 
 // Error handling middleware
 app.use(

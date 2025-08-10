@@ -23,7 +23,6 @@ export declare const CreateRouteRequestSchema: z.ZodObject<{
     title: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
     profile: z.ZodDefault<z.ZodEnum<["driving-car", "driving-hgv", "cycling-regular", "cycling-road", "cycling-mountain", "cycling-electric", "foot-walking", "foot-hiking", "wheelchair"]>>;
-    optimized: z.ZodDefault<z.ZodBoolean>;
     stops: z.ZodArray<z.ZodObject<{
         title: z.ZodString;
         description: z.ZodOptional<z.ZodString>;
@@ -47,7 +46,6 @@ export declare const CreateRouteRequestSchema: z.ZodObject<{
     profile: "driving-car" | "driving-hgv" | "cycling-regular" | "cycling-road" | "cycling-mountain" | "cycling-electric" | "foot-walking" | "foot-hiking" | "wheelchair";
     title: string;
     trip_id: string;
-    optimized: boolean;
     stops: {
         title: string;
         latitude: number;
@@ -68,23 +66,19 @@ export declare const CreateRouteRequestSchema: z.ZodObject<{
     }[];
     profile?: "driving-car" | "driving-hgv" | "cycling-regular" | "cycling-road" | "cycling-mountain" | "cycling-electric" | "foot-walking" | "foot-hiking" | "wheelchair" | undefined;
     description?: string | undefined;
-    optimized?: boolean | undefined;
 }>;
 export declare const UpdateRouteRequestSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     profile: z.ZodOptional<z.ZodEnum<["driving-car", "driving-hgv", "cycling-regular", "cycling-road", "cycling-mountain", "cycling-electric", "foot-walking", "foot-hiking", "wheelchair"]>>;
-    optimized: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     profile?: "driving-car" | "driving-hgv" | "cycling-regular" | "cycling-road" | "cycling-mountain" | "cycling-electric" | "foot-walking" | "foot-hiking" | "wheelchair" | undefined;
     description?: string | undefined;
     title?: string | undefined;
-    optimized?: boolean | undefined;
 }, {
     profile?: "driving-car" | "driving-hgv" | "cycling-regular" | "cycling-road" | "cycling-mountain" | "cycling-electric" | "foot-walking" | "foot-hiking" | "wheelchair" | undefined;
     description?: string | undefined;
     title?: string | undefined;
-    optimized?: boolean | undefined;
 }>;
 export declare const UpdateRouteStopSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;

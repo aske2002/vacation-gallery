@@ -24,8 +24,7 @@ exports.CreateRouteRequestSchema = zod_1.z.object({
         'foot-hiking',
         'wheelchair'
     ]).default('driving-car'),
-    optimized: zod_1.z.boolean().default(false),
-    stops: zod_1.z.array(exports.CreateRouteStopSchema).min(2, 'At least 2 stops are required')
+    stops: zod_1.z.array(exports.CreateRouteStopSchema)
 });
 exports.UpdateRouteRequestSchema = zod_1.z.object({
     title: zod_1.z.string().min(1).optional(),
@@ -41,7 +40,6 @@ exports.UpdateRouteRequestSchema = zod_1.z.object({
         'foot-hiking',
         'wheelchair'
     ]).optional(),
-    optimized: zod_1.z.boolean().optional()
 });
 exports.UpdateRouteStopSchema = zod_1.z.object({
     title: zod_1.z.string().min(1).optional(),

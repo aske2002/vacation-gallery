@@ -1,6 +1,3 @@
-import { RouteWithStops } from "../../common/src/types/route";
-import { database } from "./database";
-
 export interface Coordinate {
   latitude: number;
   longitude: number;

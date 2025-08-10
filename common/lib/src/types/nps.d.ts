@@ -1,0 +1,23 @@
+export type NPSFeature = {
+    NAME: string;
+    ADDRESS: string;
+    ALPHA_CODE: string;
+    PARK_CODE: number;
+    AQUIRED: string;
+    TRANS_DC: string | null;
+    SOURCE: string;
+    RESERVE: string;
+    LABEL: string;
+    SQUARE: string;
+    SUFFIX: string | null;
+    LOT: string;
+    SSL: string;
+    PAR: string | null;
+    GIS_ID: string;
+    OBJECTID: number;
+    GLOBALID: string;
+    CREATED: string | null;
+    EDITED: string | null;
+    SHAPEAREA: number;
+    SHAPELEN: number;
+};

@@ -1,4 +1,4 @@
-export interface Photo {
+export interface PhotoType {
   id: string;
   trip_id: string;
   filename: string;

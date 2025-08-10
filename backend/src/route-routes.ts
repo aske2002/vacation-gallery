@@ -25,7 +25,7 @@ router.get("/trips/:tripId/routes", async (req, res) => {
 // Get a specific route with stops
 router.get("/routes/:id", async (req, res) => {
   try {
-    const route = await database.getRouteWithStops(req.params.id);
+    const route = await database.getRoute(req.params.id);
     if (!route) {
       return res.status(404).json({ error: "Route not found" });
     }

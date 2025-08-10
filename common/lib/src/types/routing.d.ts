@@ -1,6 +1,7 @@
 export interface Coordinate {
     latitude: number;
     longitude: number;
+    altitude?: number;
 }
 export interface RouteRequest {
     coordinates: Coordinate[];
@@ -12,7 +13,6 @@ export interface RouteRequest {
     instructions?: boolean;
     elevation?: boolean;
     extra_info?: string[];
-    optimized?: boolean;
 }
 export interface RouteResponse {
     routes: Route[];

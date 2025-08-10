@@ -3,14 +3,9 @@ import { open, Database as SqliteDatabase } from "sqlite";
 import path, { resolve } from "path";
 import { v4 as uuidv4 } from "uuid";
 import { geocodingService, LocationInfo } from "./geocoding-service";
-import { Photo } from "../../common/src/types/photo";
+import { PhotoType } from "../../common/src/types/photo";
 import { Trip } from "../../common/src/types/trip";
-import {
-  Route,
-  RouteSegment,
-  RouteStop,
-  RouteWithStops,
-} from "../../common/src/types/route";
+import { Route, RouteSegment, RouteStop } from "../../common/src/types/route";
 import {
   Coordinate,
   openRouteService,
@@ -255,8 +250,8 @@ class Database {
 
   // Helper method to enhance photo with location information
   private async enhancePhotoWithLocation(
-    photoData: Partial<Photo>
-  ): Promise<Partial<Photo>> {
+    photoData: Partial<PhotoType>
+  ): Promise<Partial<PhotoType>> {
     // Only geocode if coordinates are provided and location info is missing
     if (photoData.latitude && photoData.longitude && !photoData.location_name) {
       try {
@@ -290,18 +285,18 @@ class Database {
 
   // Photo methods
   async createPhoto(
-    photo: Omit<Photo, "created_at" | "updated_at">
-  ): Promise<Photo> {
+    photo: Omit<PhotoType, "created_at" | "updated_at">
+  ): Promise<PhotoType> {
     const now = new Date().toISOString();
 
     // Enhance photo data with location information if coordinates are provided
     const enhancedPhoto = await this.enhancePhotoWithLocation(photo);
 
-    const photoData: Photo = {
+    const photoData: PhotoType = {
       ...enhancedPhoto,
       created_at: now,
       updated_at: now,
-    } as Photo;
+    } as PhotoType;
     const stmt = await this.db.prepare(`
         INSERT INTO photos (
           id, trip_id, filename, original_filename, title, description,
@@ -345,29 +340,29 @@ class Database {
     return photoData;
   }
 
-  async getAllPhotos(): Promise<Photo[]> {
+  async getAllPhotos(): Promise<PhotoType[]> {
     return this.db.all(
       "SELECT * FROM photos ORDER BY taken_at DESC, created_at DESC"
     );
   }
 
-  async getPhotosByTripId(tripId: string): Promise<Photo[]> {
+  async getPhotosByTripId(tripId: string): Promise<PhotoType[]> {
     return this.db.all(
       "SELECT * FROM photos WHERE trip_id = ? ORDER BY taken_at DESC, created_at DESC",
       [tripId]
     );
   }
 
-  async getPhotoById(id: string): Promise<Photo | null> {
+  async getPhotoById(id: string): Promise<PhotoType | null> {
     return this.db
-      .get<Photo | null>("SELECT * FROM photos WHERE id = ?", [id])
+      .get<PhotoType | null>("SELECT * FROM photos WHERE id = ?", [id])
       .then((p) => p || null);
   }
 
   async updatePhoto(
     id: string,
-    updates: Partial<Omit<Photo, "id">>
-  ): Promise<Photo | null> {
+    updates: Partial<Omit<PhotoType, "id">>
+  ): Promise<PhotoType | null> {
     const now = new Date().toISOString();
 
     // Enhance updates with location information if coordinates are being updated
@@ -403,9 +398,15 @@ class Database {
     const successful: string[] = [];
     const failed: string[] = [];
 
-    const result = await this.db.run(
-      `DELETE FROM photos WHERE id IN (${ids.map(() => "?").join(",")})`
-    );
+    for (const id of ids) {
+        const results = await this.db.run("DELETE FROM photos WHERE id = ?", [
+        id,
+      ]);
+      if (results.changes === 0) {
+        failed.push(id);
+        continue;
+      }
+    }
     successful.push(...ids);
     return {
       successful,
@@ -413,7 +414,7 @@ class Database {
     };
   }
 
-  async getPhotosWithCoordinates(): Promise<Photo[]> {
+  async getPhotosWithCoordinates(): Promise<PhotoType[]> {
     return this.db.all(
       "SELECT * FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY taken_at DESC, created_at DESC"
     );
@@ -527,7 +528,7 @@ class Database {
   async createRoute(
     route: Omit<Route, "created_at" | "updated_at" | "geometry">,
     stops: Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">[]
-  ): Promise<RouteWithStops> {
+  ): Promise<Route> {
     const now = new Date().toISOString();
     const routeData = {
       ...route,
@@ -555,7 +556,7 @@ class Database {
     for (const routeStop of stops) {
       await this.createRouteStop(routeData.id, routeStop);
     }
-    return await this.getRouteWithStops(routeData.id);
+    return await this.getRoute(routeData.id);
   }
 
   async getAllRoutes(): Promise<Route[]> {
@@ -569,14 +570,66 @@ class Database {
   }
 
   async getRoutesByTripId(tripId: string): Promise<Route[]> {
-    const rows = (await this.db.all(
-      "SELECT * FROM routes WHERE trip_id = ? ORDER BY created_at DESC",
+    const rows = await this.db.all<any>(
+      `
+    SELECT 
+      r.*,
+      COALESCE(
+        (
+          SELECT json_group_array(json_object(
+            'id', s.id,
+            'route_id', s.route_id,
+            'title', s.title,
+            'description', s.description,
+            'latitude', s.latitude,
+            'longitude', s.longitude,
+            'order_index', s.order_index,
+            'location_name', s.location_name,
+            'city', s.city,
+            'state', s.state,
+            'country', s.country,
+            'country_code', s.country_code,
+            'created_at', s.created_at,
+            'updated_at', s.updated_at
+          ))
+          FROM route_stops s
+          WHERE s.route_id = r.id
+          ORDER BY s.order_index
+        ), '[]'
+      ) AS stops,
+      COALESCE(
+        (
+          SELECT json_group_array(json_object(
+            'id', g.id,
+            'route_id', g.route_id,
+            'start_stop_id', g.start_stop_id,
+            'end_stop_id', g.end_stop_id,
+            'distance', g.distance,
+            'duration', g.duration,
+            'geometry', g.geometry,
+            'coordinates_hash', g.coordinates_hash,
+            'created_at', g.created_at,
+            'updated_at', g.updated_at
+          ))
+          FROM route_segments g
+          WHERE g.route_id = r.id
+        ), '[]'
+      ) AS segments
+    FROM routes r
+    WHERE r.trip_id = ?
+    ORDER BY r.created_at DESC
+    `,
       [tripId]
-    )) as any[];
-    const routes = rows.map((row) => ({
-      ...row,
-    }));
-    return routes as Route[];
+    );
+
+    return rows.map((r: any) => ({
+      ...r,
+      stops: JSON.parse(r.stops),
+      segments: JSON.parse(r.segments).map((seg: any) => ({
+        ...seg,
+        geometry: JSON.parse(seg.geometry), // keep geometry as object
+      })),
+    })) as Route[];
   }
 
   async getRouteById(id: string): Promise<Route> {
@@ -590,7 +643,7 @@ class Database {
     return route as Route;
   }
 
-  async getRouteWithStops(id: string): Promise<RouteWithStops> {
+  async getRoute(id: string): Promise<Route> {
     const routeRow = (await this.db.get("SELECT * FROM routes WHERE id = ?", [
       id,
     ])) as any;
@@ -632,7 +685,7 @@ class Database {
       stops: stopRows,
       segments: segments,
     };
-    return route as RouteWithStops;
+    return route as Route;
   }
 
   private async getSegmentDirections(
@@ -665,15 +718,12 @@ class Database {
     return crypto.createHash("sha256").update(data).digest("hex");
   }
 
-  async regenerateRoutePath(
-    routeId: string,
-    timestamp?: Date
-  ): Promise<RouteWithStops> {
+  async regenerateRoutePath(routeId: string, timestamp?: Date): Promise<Route> {
     const {
       segments: existingSegments,
       stops,
       ...route
-    } = await this.getRouteWithStops(routeId);
+    } = await this.getRoute(routeId);
     if (!route) {
       throw new Error(`Route with ID ${routeId} not found`);
     }
@@ -805,7 +855,7 @@ class Database {
       Omit<Route, "id" | "trip_id" | "created_at" | "updated_at">
     >
   ) {
-    const routeWithStops = await this.getRouteWithStops(id);
+    const routeWithStops = await this.getRoute(id);
     if (!routeWithStops) {
       throw new Error(`Route with ID ${id} not found`);
     }
@@ -848,7 +898,7 @@ class Database {
   async createRouteStop(
     routeId: string,
     stopData: Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">
-  ): Promise<RouteWithStops> {
+  ): Promise<Route> {
     const now = new Date().toISOString();
     const stopId = uuidv4();
     // Enhance stop with location information if needed
@@ -877,19 +927,13 @@ class Database {
       }
     }
 
-    const oldRoute = await this.getRouteWithStops(routeId);
+    const oldRoute = await this.getRoute(routeId);
     const finalStopData: RouteStop = {
       id: stopId,
       route_id: routeId,
       ...enhancedStopData,
       created_at: now,
       order_index: oldRoute.stops.length,
-      updated_at: now,
-    };
-
-    const newRoute: RouteWithStops = {
-      ...oldRoute,
-      stops: [...oldRoute.stops, finalStopData],
       updated_at: now,
     };
 
@@ -967,7 +1011,7 @@ class Database {
     updates: Partial<
       Omit<RouteStop, "id" | "route_id" | "created_at" | "updated_at">
     >
-  ): Promise<RouteWithStops> {
+  ): Promise<Route> {
     const now = new Date().toISOString();
     const currentStop = await this.getRouteStopById(id);
 
@@ -1015,7 +1059,7 @@ class Database {
       return await this.regenerateRoutePath(currentStop.route_id);
     }
 
-    return this.getRouteWithStops(currentStop.route_id);
+    return this.getRoute(currentStop.route_id);
   }
 
   async getRouteStopById(id: string): Promise<RouteStop> {
@@ -1028,7 +1072,7 @@ class Database {
     return out;
   }
 
-  async deleteRouteStop(id: string): Promise<RouteWithStops> {
+  async deleteRouteStop(id: string): Promise<Route> {
     const routeStop = await this.getRouteStopById(id);
     await this.db.run("DELETE FROM route_stops WHERE id = ?", [id]);
     await this.reorderAllRouteStops(routeStop.route_id);
@@ -1080,14 +1124,14 @@ class Database {
     return stats;
   }
 
-  private async getPhotosWithCoordinatesButNoLocation(): Promise<Photo[]> {
+  private async getPhotosWithCoordinatesButNoLocation(): Promise<PhotoType[]> {
     return await this.db.all(
       "SELECT * FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND location_name IS NULL"
     );
   }
 
   // Public method to get photos that need location data
-  async getPhotosNeedingLocationData(): Promise<Photo[]> {
+  async getPhotosNeedingLocationData(): Promise<PhotoType[]> {
     return this.getPhotosWithCoordinatesButNoLocation();
   }
 
