@@ -180,17 +180,17 @@ export function RouteList({ tripId }: RouteListProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex flex-wrap">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
           {routes?.map((route) => {
             const profileInfo = getProfileInfo(route.profile);
             return (
               <Card
                 key={route.id}
-                className="hover:shadow-md transition-shadow"
+                className="hover:shadow-md transition-shadow-"
               >
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-start justify-between">
-                    <span className="flex-1 truncate">{route.title}</span>
+                    <span className="flex-1 text-nowrap">{route.title}</span>
                     <div className="flex items-center gap-1 ml-2">
                       <Button
                         variant="ghost"
@@ -214,7 +214,7 @@ export function RouteList({ tripId }: RouteListProps) {
 
                 <CardContent className="space-y-3">
                   {route.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-sm text-gray-600">
                       {route.description}
                     </p>
                   )}
