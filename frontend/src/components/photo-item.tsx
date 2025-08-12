@@ -11,7 +11,7 @@ import {
   useTripsWithPhotoCounts,
   useUpdatePhoto,
 } from "@/hooks/useVacationGalleryApi";
-import { PhotoType, PhotoEditableMetadata } from "@common/types/photo";
+import { PhotoType, PhotoEditableMetadata } from "vacation-gallery-common";
 import PhotoEditForm from "./photo-edit-form";
 import { useForm } from "react-hook-form";
 import { Photo } from "@/lib/photo-sorting";

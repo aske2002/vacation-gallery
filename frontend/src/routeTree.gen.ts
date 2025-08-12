@@ -11,10 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as FlightRouteImport } from './routes/flight'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as TripIdRouteImport } from './routes/$tripId'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as TripIdIndexRouteImport } from './routes/$tripId/index'
+import { Route as TripIdMapRouteImport } from './routes/$tripId/map'
 import { Route as AdminTripIdIndexRouteImport } from './routes/admin/$tripId/index'
 import { Route as AdminTripIdRouteIdRouteImport } from './routes/admin/$tripId/$routeId'
 
@@ -26,11 +27,6 @@ const FlightRoute = FlightRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TripIdRoute = TripIdRouteImport.update({
-  id: '/$tripId',
-  path: '/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
@@ -48,6 +44,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const TripIdIndexRoute = TripIdIndexRouteImport.update({
+  id: '/$tripId/',
+  path: '/$tripId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TripIdMapRoute = TripIdMapRouteImport.update({
+  id: '/$tripId/map',
+  path: '/$tripId/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminTripIdIndexRoute = AdminTripIdIndexRouteImport.update({
   id: '/$tripId/',
   path: '/$tripId/',
@@ -62,18 +68,20 @@ const AdminTripIdRouteIdRoute = AdminTripIdRouteIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
-  '/$tripId': typeof TripIdRoute
   '/auth': typeof AuthRoute
   '/flight': typeof FlightRoute
+  '/$tripId/map': typeof TripIdMapRoute
+  '/$tripId': typeof TripIdIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/$tripId/$routeId': typeof AdminTripIdRouteIdRoute
   '/admin/$tripId': typeof AdminTripIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$tripId': typeof TripIdRoute
   '/auth': typeof AuthRoute
   '/flight': typeof FlightRoute
+  '/$tripId/map': typeof TripIdMapRoute
+  '/$tripId': typeof TripIdIndexRoute
   '/admin': typeof AdminIndexRoute
   '/admin/$tripId/$routeId': typeof AdminTripIdRouteIdRoute
   '/admin/$tripId': typeof AdminTripIdIndexRoute
@@ -82,9 +90,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
-  '/$tripId': typeof TripIdRoute
   '/auth': typeof AuthRoute
   '/flight': typeof FlightRoute
+  '/$tripId/map': typeof TripIdMapRoute
+  '/$tripId/': typeof TripIdIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/$tripId/$routeId': typeof AdminTripIdRouteIdRoute
   '/admin/$tripId/': typeof AdminTripIdIndexRoute
@@ -94,18 +103,20 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
-    | '/$tripId'
     | '/auth'
     | '/flight'
+    | '/$tripId/map'
+    | '/$tripId'
     | '/admin/'
     | '/admin/$tripId/$routeId'
     | '/admin/$tripId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$tripId'
     | '/auth'
     | '/flight'
+    | '/$tripId/map'
+    | '/$tripId'
     | '/admin'
     | '/admin/$tripId/$routeId'
     | '/admin/$tripId'
@@ -113,9 +124,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
-    | '/$tripId'
     | '/auth'
     | '/flight'
+    | '/$tripId/map'
+    | '/$tripId/'
     | '/admin/'
     | '/admin/$tripId/$routeId'
     | '/admin/$tripId/'
@@ -124,9 +136,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
-  TripIdRoute: typeof TripIdRoute
   AuthRoute: typeof AuthRoute
   FlightRoute: typeof FlightRoute
+  TripIdMapRoute: typeof TripIdMapRoute
+  TripIdIndexRoute: typeof TripIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -143,13 +156,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$tripId': {
-      id: '/$tripId'
-      path: '/$tripId'
-      fullPath: '/$tripId'
-      preLoaderRoute: typeof TripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -172,6 +178,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
+    }
+    '/$tripId/': {
+      id: '/$tripId/'
+      path: '/$tripId'
+      fullPath: '/$tripId'
+      preLoaderRoute: typeof TripIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$tripId/map': {
+      id: '/$tripId/map'
+      path: '/$tripId/map'
+      fullPath: '/$tripId/map'
+      preLoaderRoute: typeof TripIdMapRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/$tripId/': {
       id: '/admin/$tripId/'
@@ -209,9 +229,10 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
-  TripIdRoute: TripIdRoute,
   AuthRoute: AuthRoute,
   FlightRoute: FlightRoute,
+  TripIdMapRoute: TripIdMapRoute,
+  TripIdIndexRoute: TripIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

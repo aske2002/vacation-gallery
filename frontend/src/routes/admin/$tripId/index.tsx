@@ -9,6 +9,7 @@ import {
   useDeletePhotos,
   usePhotos,
   useTrip,
+  useTripPhotos,
   useUpdateTrip,
 } from "@/hooks/useVacationGalleryApi";
 import { UploadDialog } from "@/components/dialogs/upload-dialog";
@@ -21,7 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
-import { Trip, UpdateTripRequest } from "@common/types/trip";
+import { Trip, UpdateTripRequest } from "vacation-gallery-common";
 import { toast } from "sonner";
 import {
   Form,
@@ -57,7 +58,7 @@ const AdminComponent = () => {
   const { data: trip, isLoading: isLoadingTrip } = useTrip(tripId);
   const updateTripMutation = useUpdateTrip();
 
-  const { data: photos, isLoading: isLoadingPhotos } = usePhotos();
+  const { data: photos, isLoading: isLoadingPhotos } = useTripPhotos(tripId);
   const { mutateAsync: deletePhotosMutation, isPending: isDeleting } =
     useDeletePhotos();
 
@@ -253,7 +254,7 @@ const AdminComponent = () => {
                       </>
                     ) : (
                       <p className="text-muted-foreground text-sm">
-                        {formatDate(trip?.start_date)}
+                        {formatDate(trip?.end_date)}
                       </p>
                     )}
                   </FormItem>
@@ -294,14 +295,7 @@ const AdminComponent = () => {
           tripId={tripId}
           onClose={() => setUploadPreview(null)}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Navigation className="h-5 w-5" />
-              Routes
-            </h2>
-            <RouteList tripId={tripId} />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Camera className="h-5 w-5" />
@@ -341,6 +335,13 @@ const AdminComponent = () => {
               onSelectionChange={setSelectedPhotos}
               selectedPhotos={selectedPhotos}
             />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Navigation className="h-5 w-5" />
+              Routes
+            </h2>
+            <RouteList tripId={tripId} />
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
 import { findCommonDenominatorAndBroader } from "@/lib/extract-common-location";
 import { Photo, PhotoCollection } from "@/lib/photo-sorting";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 
 interface PhotoPreviewProps {
   selectedPhoto: Photo | null;
@@ -29,6 +29,8 @@ export function PhotoPreview({
   const menuRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [direction, setDirection] = useState<1 | -1>(1);
+
+  console.log("rerendered")
 
   const showNextPhoto = useCallback(() => {
     if (!selectedPhoto) return;

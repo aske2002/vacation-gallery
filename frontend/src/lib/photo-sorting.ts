@@ -1,7 +1,7 @@
-import { PhotoType } from "@common/types/photo";
+import { PhotoType } from "vacation-gallery-common";
 import dayjs, { Dayjs } from "dayjs";
 import formatDate from "./format-date";
-import { Coordinate } from "@common/types/routing";
+import { Coordinate } from "vacation-gallery-common";
 import { api } from "@/api/api";
 import { cleanLocationName } from "./location-utils";
 import { Position } from "geojson";
@@ -37,6 +37,10 @@ export class Photo {
 
   get title(): string {
     return this.Data.title || "No title";
+  }
+
+  get trip_id(): string {
+    return this.Data.trip_id;
   }
 
   get coordinates(): Coordinate | null {
@@ -221,6 +225,10 @@ abstract class PhotoCollectionBase {
     return new SortedPhotosCollection(this.all, sortKey);
   }
 
+  filter(predicate: (photo: Photo) => boolean): ReadonlyArray<Photo> {
+    return this.all.filter(predicate);
+  }
+
   get last(): Photo | null {
     return this.all.at(-1) || null;
   }
@@ -244,6 +252,7 @@ export class PhotoCollection extends PhotoCollectionBase {
 
   constructor(photos: PhotoType[]) {
     super();
+    console.log("Creating PhotoCollection with", photos, "photos");
     this.photos = photos.map((photoData) => new Photo(photoData));
     this.hash = this.generateHash();
   }
@@ -333,7 +342,7 @@ export class PhotoCollection extends PhotoCollectionBase {
 }
 
 export class SortedPhotosCollection<
-  K extends PhotosSortKey,
+  K extends PhotosSortKey
 > extends PhotoCollectionBase {
   private sortedPhotos: Photo[];
   public readonly sortKey: K;

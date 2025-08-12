@@ -1,4 +1,4 @@
-import { PhotoType, PhotoEditableMetadata } from "@common/types/photo";
+import { PhotoType, PhotoEditableMetadata } from "vacation-gallery-common";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import DateInput from "./ui/date-input";

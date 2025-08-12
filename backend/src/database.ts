@@ -2,18 +2,20 @@ import sqlite3 from "sqlite3";
 import { open, Database as SqliteDatabase } from "sqlite";
 import path, { resolve } from "path";
 import { v4 as uuidv4 } from "uuid";
-import { geocodingService, LocationInfo } from "./geocoding-service";
-import { PhotoType } from "../../common/src/types/photo";
-import { Trip } from "../../common/src/types/trip";
-import { Route, RouteSegment, RouteStop } from "../../common/src/types/route";
-import {
-  Coordinate,
-  openRouteService,
-  RouteRequest,
-  RouteResponse,
-} from "./openroute-service";
-import crypto from "crypto";
+import { geocodingService, LocationInfo } from "./services/geocoding-service";
 
+import crypto from "crypto";
+import {
+  Trip,
+  PhotoType,
+  RouteStop,
+  Route,
+  RouteSegment,
+  RouteRequest,
+  ORSRouteResponse,
+  Coordinate,
+} from "vacation-gallery-common";
+import { openRouteService } from "./services/openroute-service";
 export interface User {
   id: string;
   username: string;
@@ -24,7 +26,7 @@ export interface User {
   updated_at: string;
 }
 
-class Database {
+export class Database {
   private db: SqliteDatabase;
 
   constructor() {
@@ -353,16 +355,18 @@ class Database {
     );
   }
 
-  async getPhotoById(id: string): Promise<PhotoType | null> {
-    return this.db
+  async getPhotoById(id: string): Promise<PhotoType> {
+    const photo = await this.db
       .get<PhotoType | null>("SELECT * FROM photos WHERE id = ?", [id])
       .then((p) => p || null);
+    if (!photo) throw new Error("Photo not found");
+    return photo;
   }
 
   async updatePhoto(
     id: string,
     updates: Partial<Omit<PhotoType, "id">>
-  ): Promise<PhotoType | null> {
+  ): Promise<PhotoType> {
     const now = new Date().toISOString();
 
     // Enhance updates with location information if coordinates are being updated
@@ -379,7 +383,7 @@ class Database {
         now,
         id,
       ])
-      .then((r) => (r.changes === 0 ? null : database.getPhotoById(id)));
+      .then((r) => this.getPhotoById(id));
   }
 
   async deletePhoto(id: string): Promise<boolean> {
@@ -399,7 +403,7 @@ class Database {
     const failed: string[] = [];
 
     for (const id of ids) {
-        const results = await this.db.run("DELETE FROM photos WHERE id = ?", [
+      const results = await this.db.run("DELETE FROM photos WHERE id = ?", [
         id,
       ]);
       if (results.changes === 0) {
@@ -692,7 +696,7 @@ class Database {
     start: Coordinate,
     end: Coordinate,
     profile: RouteRequest["profile"]
-  ): Promise<RouteResponse["routes"][number]> {
+  ): Promise<ORSRouteResponse["routes"][number]> {
     if (!openRouteService.isConfigured()) {
       throw new Error("OpenRouteService API key not configured");
     }
@@ -1157,5 +1161,3 @@ class Database {
     );
   }
 }
-
-export const database = new Database();

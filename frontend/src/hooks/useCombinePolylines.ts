@@ -1,4 +1,4 @@
-import { Route } from "@common/types/route";
+import { Route } from "vacation-gallery-common";
 import polyline from "@mapbox/polyline";
 import { LatLngTuple } from "leaflet";
 import { useMemo } from "react";

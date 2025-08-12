@@ -27,7 +27,7 @@ import {
   Map as MapIcon,
   Bookmark,
 } from "lucide-react";
-import { RouteStop } from "@common/types/route";
+import { RouteStop } from "vacation-gallery-common";
 import { PhotoCollection } from "@/lib/photo-sorting";
 
 interface StopSheetProps {

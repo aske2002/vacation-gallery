@@ -1,0 +1,1 @@
+import{j as t,O as o}from"./index-28yYTQYt.js";import{P as e}from"./protected-route-Cc9bn1vD.js";import"./card-Da7qCGoe.js";const s=function(){return t.jsx(e,{children:t.jsx(o,{})})};export{s as component};

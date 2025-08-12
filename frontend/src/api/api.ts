@@ -1,31 +1,33 @@
+import { Photo, PhotoCollection } from "@/lib/photo-sorting";
 import axios, { AxiosInstance, AxiosProgressEvent } from "axios";
-import { PhotoType } from "@common/types/photo";
+import { PhotoType } from "vacation-gallery-common";
 import {
   UploadPhotoRequest,
   UpdatePhotoRequest,
-} from "@common/types/request/update-photo-request";
-import { CreateTripRequest } from "@common/types/request/create-trip-request";
-import { Trip, UpdateTripRequest } from "@common/types/trip";
-import { Route, RouteStop } from "@common/types/route";
+} from "vacation-gallery-common";
+import { CreateTripRequest } from "vacation-gallery-common";
+import { Trip, UpdateTripRequest } from "vacation-gallery-common";
+import { Route, RouteStop } from "vacation-gallery-common";
 import {
   CreateRouteRequest,
   UpdateRouteRequest,
   UpdateRouteStop,
-} from "@common/types/request/create-route-request";
+} from "vacation-gallery-common";
 import {
   HealthResponse,
   ProfilesResponse,
   RouteRequest,
-  RouteResponse,
-  DirectionsRequest,
+  ORSRouteResponse,
+  ORSDirectionsRequest,
   IsochroneRequest,
   IsochroneResponse,
   MatrixRequest,
   MatrixResponse,
   Coordinate,
   TravelTimeResponse,
-} from "@common/types/routing";
-import { FlightData } from "@common/types/flightdata";
+} from "vacation-gallery-common";
+import { FlightData } from "vacation-gallery-common";
+import { ProgressJob } from "vacation-gallery-common";
 
 export interface DeletePhotosRequest {
   photoIds: string[];
@@ -192,9 +194,9 @@ export class Api {
     await this.client.delete(`/trips/${id}`);
   };
 
-  getTripPhotos = async (tripId: string): Promise<PhotoType[]> => {
+  getTripPhotos = async (tripId: string): Promise<PhotoCollection> => {
     const response = await this.client.get(`/trips/${tripId}/photos`);
-    return response.data;
+    return new PhotoCollection(response.data);
   };
 
   getTripRoutes = async (tripId: string): Promise<Route[]> => {
@@ -203,24 +205,24 @@ export class Api {
   };
 
   // Photo Methods
-  getAllPhotos = async (): Promise<PhotoType[]> => {
+  getAllPhotos = async (): Promise<PhotoCollection> => {
     const response = await this.client.get("/photos");
-    return response.data;
+    return new PhotoCollection(response.data);
   };
 
-  getPhotosWithCoordinates = async (): Promise<PhotoType[]> => {
+  getPhotosWithCoordinates = async (): Promise<PhotoCollection> => {
     const response = await this.client.get("/photos/with-coordinates");
-    return response.data;
+    return new PhotoCollection(response.data);
   };
 
-  getPhotoById = async (id: string): Promise<PhotoType> => {
+  getPhotoById = async (id: string): Promise<Photo> => {
     const response = await this.client.get(`/photos/${id}`);
-    return response.data;
+    return new Photo(response.data);
   };
 
-  updatePhoto = async (request: UpdatePhotoRequest): Promise<PhotoType> => {
+  updatePhoto = async (request: UpdatePhotoRequest): Promise<Photo> => {
     const response = await this.client.put(`/photos/${request.id}`, request);
-    return response.data;
+    return new Photo(response.data);
   };
 
   deletePhotos = async (request: DeletePhotosRequest): Promise<void> => {
@@ -282,10 +284,7 @@ export class Api {
     return response.data;
   };
 
-  deleteRouteStop = async (
-    routeId: string,
-    stopId: string
-  ): Promise<Route> => {
+  deleteRouteStop = async (routeId: string, stopId: string): Promise<Route> => {
     const response = await this.client.delete(
       `/routes/${routeId}/stops/${stopId}`
     );
@@ -322,7 +321,7 @@ export class Api {
     }
     return `${Math.round(meters)} m`;
   }
-  
+
   /**
    * Validate route data before submission
    */
@@ -378,6 +377,47 @@ export class Api {
       }));
   }
 
+  async waitForJobCompletion(
+    jobId: string,
+    onProgress?: (progress: number) => void
+  ): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      const controller = new AbortController();
+      const url = this.client.getUri({
+        url: `/jobs/${jobId}/stream`,
+      });
+
+      const es = new EventSource(url);
+
+      const onAbort = () => {
+        es.close();
+      };
+
+      controller.signal.addEventListener("abort", onAbort);
+
+      es.onerror = (err) => {
+        reject(new Error(`Error connecting to job stream`));
+      };
+
+      es.onmessage = (evt) => {
+        const data: ProgressJob = JSON.parse(evt.data);
+        if (data.status === "done" || data.progress >= 100) {
+          if (onProgress) onProgress(data.progress);
+          controller.signal.removeEventListener("abort", onAbort);
+          es.close();
+          resolve();
+        } else if (data.status === "error") {
+          if (onProgress) onProgress(data.progress);
+          controller.abort();
+          es.close();
+          reject(new Error(data.message || "Job failed"));
+        } else {
+          if (onProgress) onProgress(data.progress);
+        }
+      };
+    });
+  }
+
   /**
    * Calculate route bounds for map display
    */
@@ -402,13 +442,16 @@ export class Api {
   // Upload Photos
   uploadPhotos = async (
     request: UploadPhotosRequest,
-    onProgress?: (progress: number) => void
-  ): Promise<UploadResponse> => {
+    progress?: {
+      onUploadProgress?: (progress: number) => void;
+      onProcessProgress?: (progress: number) => void;
+    }
+  ): Promise<void> => {
     const formData = new FormData();
-
     request.files.forEach((photo) => {
       formData.append("photos", photo.file);
     });
+
     formData.append(
       "metadata",
       JSON.stringify(
@@ -419,25 +462,23 @@ export class Api {
       )
     );
 
-    const response = await this.client.post(
-      `/trips/${request.tripId}/photos`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = Math.round(
-              (progressEvent.loaded / progressEvent.total) * 100
-            );
-            onProgress(progress);
-          }
-        },
-      }
-    );
+    const response = await this.client.post<{
+      jobId: string;
+    }>(`/trips/${request.tripId}/photos`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+        if (progressEvent.total) {
+          const p = Math.round(progressEvent.loaded / progressEvent.total);
+          progress?.onUploadProgress && progress?.onUploadProgress(p);
+        }
+      },
+    });
 
-    return response.data;
+    await this.waitForJobCompletion(response.data.jobId, (p) => {
+      progress?.onProcessProgress && progress.onProcessProgress(p);
+    });
   };
 
   // Image URLs
@@ -450,19 +491,19 @@ export class Api {
   }
 
   // Advanced methods
-  searchPhotos = async (query: string): Promise<PhotoType[]> => {
+  searchPhotos = async (query: string): Promise<Photo[]> => {
     // Simple client-side search implementation
     // In a real app, you might want to add a search endpoint to the backend
     const photos = await this.getAllPhotos();
     const lowercaseQuery = query.toLowerCase();
 
-    return photos.filter(
+    return photos.all.filter(
       (photo) =>
         photo.title?.toLowerCase().includes(lowercaseQuery) ||
         photo.description?.toLowerCase().includes(lowercaseQuery) ||
-        photo.original_filename.toLowerCase().includes(lowercaseQuery) ||
-        photo.camera_make?.toLowerCase().includes(lowercaseQuery) ||
-        photo.camera_model?.toLowerCase().includes(lowercaseQuery)
+        photo.filename.toLowerCase().includes(lowercaseQuery) ||
+        photo.cameraInfo.make?.toLowerCase().includes(lowercaseQuery) ||
+        photo.cameraInfo.model?.toLowerCase().includes(lowercaseQuery)
     );
   };
 
@@ -479,73 +520,7 @@ export class Api {
       return { ...trip, photoCount };
     });
   };
-
-  async getPhotosByLocation(bounds: {
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-  }): Promise<PhotoType[]> {
-    const photos = await this.getPhotosWithCoordinates();
-
-    return photos.filter(
-      (photo) =>
-        photo.latitude !== null &&
-        photo.longitude !== null &&
-        photo.latitude !== undefined &&
-        photo.longitude !== undefined &&
-        photo.latitude >= bounds.south &&
-        photo.latitude <= bounds.north &&
-        photo.longitude >= bounds.west &&
-        photo.longitude <= bounds.east
-    );
-  }
-
-  getPhotosByDateRange = async (
-    startDate: string,
-    endDate: string
-  ): Promise<PhotoType[]> => {
-    const photos = await this.getAllPhotos();
-
-    return photos.filter((photo) => {
-      if (!photo.taken_at) return false;
-      const photoDate = new Date(photo.taken_at);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      return photoDate >= start && photoDate <= end;
-    });
-  };
-
-  // Statistics
-  async getStatistics(): Promise<{
-    totalTrips: number;
-    totalPhotos: number;
-    photosWithGPS: number;
-    totalFileSize: number;
-    averagePhotosPerTrip: number;
-  }> {
-    const [trips, photos, photosWithGPS] = await Promise.all([
-      this.getAllTrips(),
-      this.getAllPhotos(),
-      this.getPhotosWithCoordinates(),
-    ]);
-
-    const totalFileSize = photos.reduce(
-      (sum, photo) => sum + photo.file_size,
-      0
-    );
-    const averagePhotosPerTrip =
-      trips.length > 0 ? photos.length / trips.length : 0;
-
-    return {
-      totalTrips: trips.length,
-      totalPhotos: photos.length,
-      photosWithGPS: photosWithGPS.length,
-      totalFileSize,
-      averagePhotosPerTrip: Math.round(averagePhotosPerTrip * 100) / 100,
-    };
-  }
-
+  
   // OpenRouteService Methods
   /**
    * Check if OpenRouteService is configured and available
@@ -566,7 +541,7 @@ export class Api {
   /**
    * Get directions between multiple points
    */
-  async getDirections(request: RouteRequest): Promise<RouteResponse> {
+  async getDirections(request: RouteRequest): Promise<ORSRouteResponse> {
     const response = await this.client.post("/openroute/directions", request);
     return response.data;
   }
@@ -575,8 +550,8 @@ export class Api {
    * Get simple directions between two points
    */
   async getSimpleDirections(
-    request: DirectionsRequest
-  ): Promise<RouteResponse> {
+    request: ORSDirectionsRequest
+  ): Promise<ORSRouteResponse> {
     const response = await this.client.post(
       "/openroute/directions/simple",
       request
@@ -606,7 +581,7 @@ export class Api {
   async optimizeRoute(
     coordinates: Coordinate[],
     profile?: RouteRequest["profile"]
-  ): Promise<RouteResponse> {
+  ): Promise<ORSRouteResponse> {
     const response = await this.client.post("/openroute/optimize", {
       coordinates,
       profile: profile || "driving-car",
@@ -662,7 +637,7 @@ export class Api {
   async getPhotoRoute(
     photos: PhotoType[],
     profile?: RouteRequest["profile"]
-  ): Promise<RouteResponse> {
+  ): Promise<ORSRouteResponse> {
     const coordinates = photos
       .filter((photo) => photo.latitude && photo.longitude)
       .map((photo) => ({
@@ -715,7 +690,9 @@ export class Api {
     rangeInSeconds: number,
     photos: PhotoType[],
     profile?: RouteRequest["profile"]
-  ): Promise<Array<{ photo: PhotoType; travelTime: number; distance: number }>> {
+  ): Promise<
+    Array<{ photo: PhotoType; travelTime: number; distance: number }>
+  > {
     const photosWithCoordinates = photos.filter(
       (photo) => photo.latitude && photo.longitude
     );

@@ -3,13 +3,13 @@
     "target": "es6",
     "module": "commonjs",
     "outDir": "./dist",
+    "allowSyntheticDefaultImports": true,  
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "types": ["node"]
   },
   "include": [
-    "src/**/*.ts", // Include all TS files in backend
-    "../common/src/**/*.ts" // Include TS files from the common directory
+    "src/**/*.ts" // Include all TS files in backend
   ]
 }

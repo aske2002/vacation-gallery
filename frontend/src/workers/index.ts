@@ -275,26 +275,7 @@ export class LibRaw implements Disposable {
 				offset: LibRaw.module._libraw_get_imgother(this.lr),
 			});
 	}
-	// getDecoderInfo() {
-	// 	/**
-	// 	 * @see https://github.com/LibRaw/LibRaw/blob/cccb97647fcee56801fa68231fa8a38aa8b52ef7/libraw/libraw_types.h#L120-L124
-	// 	 * ```c
-	// 	 * typedef struct {
-	// 	 *   const char *decoder_name;
-	// 	 *   unsigned decoder_flags;
-	// 	 * } libraw_decoder_info_t;
-	// 	 * ```
-	// 	 */
-	// 	const decoderInfoPtr = LibRaw.libraw._malloc(8) as LibRawDecoderInfo;
-	// 	const code = LibRaw.libraw._libraw_get_decoder_info(decoderInfoPtr);
-	// 	console.log({ code });
-	// 	if (code) throw this.error(code);
-	// 	const ptr = { ptr: decoderInfoPtr };
-	// 	return {
-	// 		decoderName: this.readString(this.readU32(ptr) as CharPtr),
-	// 		decoderFlags: this.readU32(ptr),
-	// 	};
-	// }
+
 	getThumbnail() {
 		return libraw_thumbnail_t()
 			.override("thumb", typ.pointerArrayFromLengthField(typ.u8, "tlength"))
@@ -319,7 +300,6 @@ export class LibRaw implements Disposable {
 		});
 	}
 	private handleError(code: ErrorCode) {
-		console.log(code)
 		if (code)
 			throw Error(this.readString(LibRaw.module._libraw_strerror(code)));
 	}

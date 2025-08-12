@@ -1,5 +1,5 @@
 import { LibRaw } from "@/workers";
-import { PhotoEditableMetadata } from "@common/types/photo";
+import { PhotoEditableMetadata } from "vacation-gallery-common";
 import exifr from "exifr";
 import piexif from "piexifjs";
 

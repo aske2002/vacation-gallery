@@ -1,0 +1,1 @@
+import{l as a}from"./index-28yYTQYt.js";import{b as l,a as s,e as r}from"./openstreetmap-C_Emiqu9.js";const f=l(function({positions:t,...e},o){const n=new a.Polyline(t,e);return s(n,r(o,{overlayContainer:n}))},function(t,e,o){e.positions!==o.positions&&t.setLatLngs(e.positions)});export{f as P};

@@ -15,6 +15,7 @@ const AnimatedPolyline: React.FC<AnimatedPolylineProps> = ({
   weight = 5,
   duration = 2000
 }) => {
+  
   const [displayedPositions, setDisplayedPositions] = useState<
     [number, number][]
   >([]);

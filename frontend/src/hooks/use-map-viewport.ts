@@ -1,6 +1,6 @@
-import { useMap } from "@vis.gl/react-google-maps";
 import { useEffect, useState } from "react";
 import { BBox } from "geojson";
+import { useMap } from "react-leaflet";
 
 type MapViewportOptions = {
   padding?: number;
@@ -15,29 +15,32 @@ export function useMapViewport({ padding = 0 }: MapViewportOptions = {}) {
   useEffect(() => {
     if (!map) return;
 
-    const listener = map.addListener("bounds_changed", () => {
+    const boundsChanged = () => {
       const bounds = map.getBounds();
       const zoom = map.getZoom();
-      const projection = map.getProjection();
 
-      if (!bounds || !zoom || !projection) return;
+      if (!bounds || !zoom) return;
 
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
 
       const paddingDegrees = degreesPerPixel(zoom) * padding;
 
-      const n = Math.min(90, ne.lat() + paddingDegrees);
-      const s = Math.max(-90, sw.lat() - paddingDegrees);
+      const n = Math.min(90, ne.lat + paddingDegrees);
+      const s = Math.max(-90, sw.lng - paddingDegrees);
 
-      const w = sw.lng() - paddingDegrees;
-      const e = ne.lng() + paddingDegrees;
+      const w = sw.lng - paddingDegrees;
+      const e = ne.lng + paddingDegrees;
 
       setBbox([w, s, e, n]);
       setZoom(zoom);
-    });
+    }
 
-    return () => listener.remove();
+    map.addEventListener("move", boundsChanged);
+
+    return () => {
+      map.removeEventListener("move", boundsChanged);
+    };
   }, [map, padding]);
 
   return { bbox, zoom };

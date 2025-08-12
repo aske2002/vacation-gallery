@@ -2,7 +2,7 @@ import { TripStep } from "@/types/trip";
 import { Marker, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import { useMemo, useCallback } from "react";
-import { RouteStop } from "@common/types/route";
+import { RouteStop } from "vacation-gallery-common";
 import { MapZIndexes } from "@/lib/map-indexes";
 
 interface TripStepMarkerProps {

@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Route, RouteStop } from "@common/types/route";
-import { UpdateRouteRequest } from "@common/types/request/create-route-request";
+import { Route, RouteStop } from "vacation-gallery-common";
+import { UpdateRouteRequest } from "vacation-gallery-common";
 import { toast } from "sonner";
 import L, { Map } from "leaflet";
 import polyline from "@mapbox/polyline";

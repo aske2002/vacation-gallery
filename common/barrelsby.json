@@ -1,0 +1,7 @@
+{
+  "delete": true,
+  "directory": "./src",
+  "barrelName": "index",
+  "structure": "flat", 
+  "quoteCharacter": "\""
+}

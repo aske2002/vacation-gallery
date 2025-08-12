@@ -12,16 +12,16 @@ import {
   TripWithPhotoCount,
   UploadPhotosRequest,
 } from "../api/api";
-import { PhotoType } from "@common/types/photo";
-import { UpdatePhotoRequest } from "@common/types/request/update-photo-request";
-import { CreateTripRequest } from "@common/types/request/create-trip-request";
-import { Trip, UpdateTripRequest } from "@common/types/trip";
-import { Route, RouteStop } from "@common/types/route";
+import { PhotoType } from "vacation-gallery-common";
+import { UpdatePhotoRequest } from "vacation-gallery-common";
+import { CreateTripRequest } from "vacation-gallery-common";
+import { Trip, UpdateTripRequest } from "vacation-gallery-common";
+import { Route, RouteStop } from "vacation-gallery-common";
 import {
   CreateRouteRequest,
   UpdateRouteRequest,
   UpdateRouteStop,
-} from "@common/types/request/create-route-request";
+} from "vacation-gallery-common";
 import { queryClient } from "@/main";
 import { da } from "date-fns/locale";
 import { Photo, PhotoCollection } from "@/lib/photo-sorting";
@@ -60,17 +60,33 @@ const queryUpdaters = {
     queryClient.setQueryData(
       queryKeys.trips,
       (oldTrips: Trip[] | undefined) => {
-        return oldTrips?.map((trip) =>
-          trip.id === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
-        );
+        return oldTrips?.find((t) => t.id === updatedTrip.id)
+          ? oldTrips?.map((trip) =>
+              trip.id === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
+            )
+          : [
+              ...(oldTrips || []),
+              {
+                ...updatedTrip,
+                photoCount: 0,
+              },
+            ];
       }
     );
     queryClient.setQueryData(
       queryKeys.tripsWithPhotoCounts,
       (oldTrips: TripWithPhotoCount[] | undefined) => {
-        return oldTrips?.map((trip) =>
-          trip.id === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
-        );
+        return oldTrips?.find((t) => t.id === updatedTrip.id)
+          ? oldTrips?.map((trip) =>
+              trip.id === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
+            )
+          : [
+              ...(oldTrips || []),
+              {
+                ...updatedTrip,
+                photoCount: 0,
+              },
+            ];
       }
     );
   },
@@ -239,6 +255,9 @@ export function useCreateTrip(): UseMutationResult<
     onSuccess: (newTrip) => {
       queryUpdaters.trip(newTrip);
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips });
+    },
   });
 }
 
@@ -258,8 +277,6 @@ export function useUpdateTrip(): UseMutationResult<
 }
 
 export function useDeleteTrip(): UseMutationResult<void, Error, string> {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (id: string) => api.deleteTrip(id),
     onSuccess: (_, tripId) => {
@@ -269,58 +286,31 @@ export function useDeleteTrip(): UseMutationResult<void, Error, string> {
 }
 
 // Photos Hooks
-export function usePhotos(): Omit<
-  UseQueryResult<any | undefined, Error>,
-  "data"
-> & {
-  data?: PhotoCollection | undefined;
-} {
-  const queryData = useQuery({
+export function usePhotos(): UseQueryResult<PhotoCollection, Error> {
+  return useQuery({
     experimental_prefetchInRender: true, // This is a React Query feature to prefetch data
     queryKey: queryKeys.photos,
     queryFn: () => api.getAllPhotos(),
   });
-  return {
-    ...queryData,
-    data: queryData.data ? new PhotoCollection(queryData.data) : undefined,
-  };
 }
 
-export function useTripPhotos(tripId: string | null): Omit<
-  UseQueryResult<any | undefined, Error>,
-  "data"
-> & {
-  data?: PhotoCollection | undefined;
-} {
-  const queryData = useQuery({
+export function useTripPhotos(tripId: string | null): UseQueryResult<PhotoCollection, Error> {
+  return useQuery({
     queryKey: queryKeys.tripPhotos(tripId!),
     queryFn: () => api.getTripPhotos(tripId!),
     enabled: !!tripId,
   });
-  return {
-    ...queryData,
-    data: queryData.data ? new PhotoCollection(queryData.data) : undefined,
-  };
 }
 
-export function usePhoto(id: string | null): Omit<
-  UseQueryResult<any | undefined, Error>,
-  "data"
-> & {
-  data?: Photo | undefined;
-} {
-  const queryData = useQuery({
+export function usePhoto(id: string | null): UseQueryResult<Photo, Error> {
+  return useQuery({
     queryKey: queryKeys.photo(id!),
     queryFn: () => api.getPhotoById(id!),
     enabled: !!id,
   });
-  return {
-    ...queryData,
-    data: queryData.data ? new Photo(queryData.data) : undefined,
-  };
 }
 
-export function usePhotosWithCoordinates(): UseQueryResult<PhotoType[], Error> {
+export function usePhotosWithCoordinates(): UseQueryResult<PhotoCollection, Error> {
   return useQuery({
     queryKey: queryKeys.photosWithCoordinates,
     queryFn: () => api.getPhotosWithCoordinates(),
@@ -328,17 +318,20 @@ export function usePhotosWithCoordinates(): UseQueryResult<PhotoType[], Error> {
 }
 
 export function useUploadPhotos(): UseMutationResult<
-  UploadResponse,
+  void,
   Error,
   {
     request: UploadPhotosRequest;
-    onProgress?: (progress: number) => void;
+    progress?: {
+      onUploadProgress?: (progress: number) => void;
+      onProcessProgress?: (progress: number) => void;
+    };
   }
 > {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ request, onProgress }) =>
+    mutationFn: ({ request, progress: onProgress }) =>
       api.uploadPhotos(request, onProgress),
     onSuccess: (result, { request }) => {
       // Invalidate related queries
@@ -358,7 +351,7 @@ export function useUploadPhotos(): UseMutationResult<
 }
 
 export function useUpdatePhoto(): UseMutationResult<
-  PhotoType,
+  Photo,
   Error,
   UpdatePhotoRequest
 > {
@@ -423,22 +416,6 @@ export function useTripsWithPhotoCounts(): UseQueryResult<
   return useQuery({
     queryKey: queryKeys.tripsWithPhotoCounts,
     queryFn: () => api.getTripsWithPhotoCounts(),
-  });
-}
-
-export function useStatistics(): UseQueryResult<
-  {
-    totalTrips: number;
-    totalPhotos: number;
-    photosWithGPS: number;
-    totalFileSize: number;
-    averagePhotosPerTrip: number;
-  },
-  Error
-> {
-  return useQuery({
-    queryKey: queryKeys.statistics,
-    queryFn: () => api.getStatistics(),
   });
 }
 

@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { Profiler, StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import "./index.css";
@@ -11,7 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider } from "./hooks/useVacationAuth";
 import "leaflet/dist/leaflet.css";
-import "./components/osm/zoom-controller"
+import "./components/osm/zoom-controller";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,17 +43,18 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <APIProvider
-        apiKey="AIzaSyC-vaTZTfS6CPY9bf9fugOEUAChgFLaVC0"
-        onError={() => {}}
-      >
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-          </AuthProvider>
-        </QueryClientProvider>
-      </APIProvider>
+        {/* Wrap the RouterProvider with APIProvider and QueryClientProvider */}
+        <APIProvider
+          apiKey="AIzaSyC-vaTZTfS6CPY9bf9fugOEUAChgFLaVC0"
+          onError={() => {}}
+        >
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+            </AuthProvider>
+          </QueryClientProvider>
+        </APIProvider>
     </StrictMode>
   );
 }

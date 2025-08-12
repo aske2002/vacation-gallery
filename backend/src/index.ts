@@ -1,14 +1,18 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
-import tripRoutes from "./trip-routes";
-import photoRoutes from "./photo-routes";
-import authRoutes from "./auth-routes";
-import openrouteRoutes from "./openroute-routes";
-import routeRoutes from "./route-routes";
-import flightRoutes from "./flight-routes";
-import { database } from "./database";
+import tripRoutes from "./routes/trip-routes";
+import photoRoutes from "./routes/photo-routes";
+import authRoutes from "./routes/auth-routes";
+import routeRoutes from "./routes/route-routes";
+import commonRoutes from "./routes/common-routes";
+import flightRoutes from "./routes/flight-routes";
+import { Database } from "./database";
 import { configDotenv } from "dotenv";
+import { PhotoService } from "./services/photo-service";
+
+export const database = new Database();
+export const photoService = new PhotoService(database);
 
 configDotenv({
   path: path.resolve(__dirname, "../.env"),
@@ -39,7 +43,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", tripRoutes);
 app.use("/api", photoRoutes);
 app.use("/api", routeRoutes);
-app.use("/api/openroute", openrouteRoutes);
+app.use("/api", commonRoutes);
 app.use("/api/flight", flightRoutes);
 
 // Serve static frontend files from public

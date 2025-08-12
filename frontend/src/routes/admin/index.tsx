@@ -26,7 +26,6 @@ function RouteComponent() {
     variables: deletingId,
   } = useDeleteTrip();
 
-  
   return (
     <div className="grow w-full flex flex-col gap-4">
       <CreateTripDialog

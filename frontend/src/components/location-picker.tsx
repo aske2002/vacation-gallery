@@ -13,7 +13,7 @@ import { MapPin, RotateCcw, Crosshair, Navigation } from "lucide-react";
 import { toast } from "sonner";
 import L, { LeafletMouseEvent, Map } from "leaflet";
 import { OpenStreetMap } from "./openstreetmap";
-import { LatLng } from "@common/types/nominatim";
+import { LatLng } from "vacation-gallery-common";
 import LocationSearch from "./location-search";
 
 interface LocationPickerProps {

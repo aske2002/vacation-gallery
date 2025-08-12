@@ -1,0 +1,10 @@
+packages:
+  - backend
+  - frontend
+  - common
+
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - esbuild
+  - sharp
+  - sqlite3

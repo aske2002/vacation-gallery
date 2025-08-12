@@ -1,3 +1,5 @@
+export type CreatePhotoRequest = Omit<PhotoType, "created_at" | "updated_at">;
+
 export interface PhotoType {
   id: string;
   trip_id: string;

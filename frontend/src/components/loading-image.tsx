@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { ComponentProps, useEffect, useMemo, useState } from "react";
 import { DefaultLoader } from "./default-loader";
-import { PhotoType } from "@common/types/photo";
+import { PhotoType } from "vacation-gallery-common";
 import { api } from "@/api/api";
 import { AnimatePresence } from "motion/react";
 import { Photo } from "@/lib/photo-sorting";

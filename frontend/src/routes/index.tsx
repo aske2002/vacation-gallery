@@ -4,10 +4,10 @@ import {
   useTripsWithPhotoCounts,
 } from "@/hooks/useVacationGalleryApi";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import type { Trip } from "@common/types/trip";
+import type { Trip } from "vacation-gallery-common";
 import { api, TripWithPhotoCount } from "@/api/api";
 import { useMemo } from "react";
-import { PhotoType } from "@common/types/photo";
+import { PhotoType } from "vacation-gallery-common";
 import { getFlagEmoji } from "@/lib/flag-emoji";
 import useFlightData from "@/hooks/useFlightData";
 import { Photo } from "@/lib/photo-sorting";
@@ -25,6 +25,7 @@ function RouteComponent() {
       {trips &&
         trips.map((trip) => (
           <Trip
+            key={trip.id}
             trip={trip}
             onClick={(t) =>
               navigate({
@@ -48,10 +49,15 @@ interface TripProps {
 function Trip({ trip, onClick }: TripProps) {
   const { data: tripPhotos } = useTripPhotos(trip.id);
 
-  const flightData = useFlightData();
-
   const countries = useMemo(() => {
     if (!tripPhotos) return [];
+    console.log(
+      tripPhotos.all.map((t) =>
+        t.location.country && t.location.countryCode
+          ? ([t.location.countryCode, t.location.country] as const)
+          : undefined
+      )
+    );
 
     return Array.from(
       new Map<string, string>(
@@ -67,7 +73,7 @@ function Trip({ trip, onClick }: TripProps) {
       code: c[0],
       name: c[1],
     }));
-  }, [trip]);
+  }, [trip, tripPhotos?.hash]);
 
   const max10EquallySpacedPhotos = useMemo(() => {
     if (!tripPhotos || tripPhotos.all.length === 0) return [];

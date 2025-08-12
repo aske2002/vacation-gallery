@@ -1,4 +1,4 @@
-import { NPSFeature } from "@common/types/nps";
+import { NPSFeature } from "vacation-gallery-common";
 import { useQuery } from "@tanstack/react-query";
 import { FeatureCollection, MultiPolygon } from "geojson";
 import { geoJSON } from "leaflet";

@@ -1,6 +1,6 @@
 import useInternetConnection from "@/hooks/useInternetConnection";
 import { useEffect, useRef } from "react";
-import { MapContainer } from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 import { getBlobByKey, downloadTile, saveTile } from "leaflet.offline";
 import L from "leaflet";
 import { Map, TileEvent } from "leaflet";
@@ -22,19 +22,6 @@ initSmoothWheelZoom();
 
 export function OpenStreetMap({ children, ...props }: OpenStreetMapProps) {
   const hasConnection = useInternetConnection();
-  const ref = useRef<Map>(null);
-  const tileLayer = useRef(
-    L.tileLayer(urlTemplate, {
-      attribution:
-        'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-      maxZoom: 20,
-      minZoom: 0,
-      // @ts-ignore
-      ext: "png",
-      accessToken:
-        "pk.eyJ1IjoiYXNrZTExMzEiLCJhIjoiY21lM3pjY2l0MGMzejJtc2Jra3llbTVudCJ9.hswgAAtfWRSwU1vZOhn6PA",
-    })
-  );
 
   const tileLoadStart = (event: TileEvent) => {
     const { tile } = event;
@@ -62,34 +49,32 @@ export function OpenStreetMap({ children, ...props }: OpenStreetMapProps) {
     });
   };
 
-  const setMapRef = (r: Map) => {
-    ref.current = r;
-    if (typeof props.ref === "object" && props.ref) {
-      props.ref.current = r;
-    } else if (typeof props.ref === "function") {
-      props.ref(r);
-    }
-  };
-
-  useEffect(() => {
-    console.log("sss");
-    if (ref.current) {
-      tileLayer.current.addEventListener("tileloadstart", tileLoadStart);
-      tileLayer.current.addTo(ref.current);
-    }
-  }, [ref.current]);
-
   return hasConnection ? (
     <MapContainer
       {...props}
-      ref={setMapRef}
       zoomSnap={0}
       zoomAnimation={true}
+      preferCanvas={true}
       zoomDelta={20}
       scrollWheelZoom={false}
       smoothWheelZoom={true}
       smoothSensitivity={5}
     >
+      <TileLayer
+        url={urlTemplate}
+        attribution={
+          'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="https://www.mapbox.com/">Mapbox</a>'
+        }
+        maxZoom={20}
+        minZoom={0}
+        eventHandlers={{
+          tileloadstart: tileLoadStart,
+        }}
+        //@ts-ignore
+        ext="png"
+        //@ts-ignore
+        accessToken="pk.eyJ1IjoiYXNrZTExMzEiLCJhIjoiY21lM3pjY2l0MGMzejJtc2Jra3llbTVudCJ9.hswgAAtfWRSwU1vZOhn6PA"
+      />
       {!hasConnection && (
         <Badge variant={"destructive"} className="z-999 absolute right-2 top-2">
           Offline

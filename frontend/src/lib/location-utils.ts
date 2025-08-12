@@ -1,4 +1,4 @@
-import { PhotoType } from "@common/types/photo";
+import { PhotoType } from "vacation-gallery-common";
 import L from "leaflet";
 import { LatLng, LatLngExpression } from "leaflet";
 import { point, lineString } from "@turf/helpers";

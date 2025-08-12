@@ -27,7 +27,7 @@ import { LoadingButton } from "../loading-button";
 import {
   CreateTripRequest,
   CreateTripRequestSchema,
-} from "@common/types/request/create-trip-request";
+} from "vacation-gallery-common";
 
 interface CreateTripDialogProps {
   open: boolean;

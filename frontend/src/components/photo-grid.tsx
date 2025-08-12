@@ -1,6 +1,6 @@
 import PhotoItem from "./photo-item";
 import { DefaultLoader } from "./default-loader";
-import { PhotoType } from "@common/types/photo";
+import { PhotoType } from "vacation-gallery-common";
 import { Photo, PhotoCollection } from "@/lib/photo-sorting";
 
 interface PhotoGridProps {

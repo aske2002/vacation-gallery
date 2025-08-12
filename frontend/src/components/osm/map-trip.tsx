@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import TripStepMarkerOSM from "./markers/trip-step-marker";
-import { Route } from "@common/types/route";
+import { Route } from "vacation-gallery-common";
 import { usePolylineFromRoute } from "@/hooks/useCombinePolylines";
 import AnimatedPolylineWithMarker from "./animated-polyline-marker";
 import { getRouteInformation } from "@/lib/location-utils";
@@ -21,14 +21,19 @@ const MapTrip = ({ route, photos }: MapTripProps) => {
   const { data: routeInformation } = useQuery({
     queryKey: ["routeInformation", photos.hash],
     queryFn: () => {
-      const latestPhoto = photos.last;
+      const latestPhoto = photos
+        .sortByKey("time")
+        .filter((p) => !!p.latLng)
+        .at(-1);
       if (latestPhoto?.latLng) {
         return getRouteInformation(polyLineCoords, photos);
       } else {
-        return undefined;
+        return null;
       }
     },
   });
+
+  console.log("Route Information:", routeInformation);
 
   return (
     <>

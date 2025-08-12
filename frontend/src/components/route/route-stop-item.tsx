@@ -1,4 +1,4 @@
-import { RouteStop } from "@common/types/route";
+import { RouteStop } from "vacation-gallery-common";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -8,7 +8,7 @@ import {
   UpdateRouteRequestSchema,
   UpdateRouteStop,
   UpdateRouteStopSchema,
-} from "@common/types/request/create-route-request";
+} from "vacation-gallery-common";
 import {
   useDeleteRouteStop,
   useUpdateRouteStop,

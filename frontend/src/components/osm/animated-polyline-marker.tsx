@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Polyline, Marker } from "react-leaflet";
+import { Polyline, Marker, useMap } from "react-leaflet";
 import L, { LatLngTuple } from "leaflet";
 import { renderToString } from "react-dom/server";
 import { MapZIndexes } from "@/lib/map-indexes";
@@ -79,9 +79,7 @@ function splitRouteAtFraction(positions: LatLngTuple[], frac: number) {
     acc += seg;
   }
   const remaining =
-    splitIndex >= positions.length - 1
-      ? []
-      : [markerPos, ...positions.slice(splitIndex)];
+    splitIndex >= positions.length - 1 ? [] : [markerPos, ...positions.slice(splitIndex)];
   return { completed, remaining, markerPos, totalDistance: total };
 }
 
@@ -91,12 +89,13 @@ const AnimatedPolylineWithMarker: React.FC<AnimatedPolylineWithMarkerProps> = ({
   markerZIndex,
   onFinish,
   weight = 5,
-  totalDuration = 4000, // total time for 100% route
+  totalDuration = 4000,
   children,
   iconSize = [32, 32],
   progress: progressProp,
   remainingColor = "#565656",
 }) => {
+  const map = useMap();
   const targetFrac = normalizeProgress(progressProp);
 
   const [completedDisplay, setCompletedDisplay] = useState<LatLngTuple[]>([]);
@@ -108,23 +107,33 @@ const AnimatedPolylineWithMarker: React.FC<AnimatedPolylineWithMarkerProps> = ({
   const mainStartRef = useRef<number | null>(null);
   const tailStartRef = useRef<number | null>(null);
 
+  const mainPausedElapsedRef = useRef<number>(0);
+  const tailPausedElapsedRef = useRef<number>(0);
+
+  const isZoomingRef = useRef<boolean>(false); // pause flag
+  const mainDoneRef = useRef<boolean>(false);
+  const tailActiveRef = useRef<boolean>(false);
+
   const carIcon = useMemo(() => {
     const content = renderToString(children);
     return L.divIcon({
-      html: `<div class="animated-marker-container relative" style="${markerZIndex ? `z-index: ${markerZIndex}` : ""}">${content}</div>`,
+      html: `<div class="animated-marker-container relative" style="${
+        markerZIndex ? `z-index: ${markerZIndex}` : ""
+      }">${content}</div>`,
       className: "animated-marker",
       iconSize,
       iconAnchor: [iconSize[0] / 2, iconSize[1] / 2],
     });
-  }, [children, iconSize]);
+  }, [children, iconSize, markerZIndex]);
 
   useEffect(() => {
     if (!positions || positions.length < 2) return;
 
-    const { completed, remaining, markerPos } = splitRouteAtFraction(
+    const { completed, remaining, markerPos: markerAtTarget } = splitRouteAtFraction(
       positions,
       targetFrac
     );
+
     setTailDisplay([]);
     setMarkerPos(positions[0]);
     setCompletedDisplay([positions[0]]);
@@ -136,9 +145,25 @@ const AnimatedPolylineWithMarker: React.FC<AnimatedPolylineWithMarkerProps> = ({
     const tailTotal = pathLength(remaining);
     const tailDuration = tailTotal / speed;
 
+    mainDoneRef.current = false;
+    tailActiveRef.current = false;
+    mainPausedElapsedRef.current = 0;
+    tailPausedElapsedRef.current = 0;
+
     const mainStep = (ts: number) => {
-      if (mainStartRef.current == null) mainStartRef.current = ts;
+      // set/refit start time considering any paused elapsed
+      if (mainStartRef.current == null) mainStartRef.current = ts - mainPausedElapsedRef.current;
+
       const elapsed = ts - mainStartRef.current;
+
+      // pause during zoom
+      if (isZoomingRef.current) {
+        mainPausedElapsedRef.current = Math.min(elapsed, mainDuration);
+        if (mainRaf.current) cancelAnimationFrame(mainRaf.current);
+        mainRaf.current = null;
+        return;
+      }
+
       const f = mainDuration > 0 ? Math.min(elapsed / mainDuration, 1) : 1;
       const dist = targetDist * f;
 
@@ -149,46 +174,91 @@ const AnimatedPolylineWithMarker: React.FC<AnimatedPolylineWithMarkerProps> = ({
       if (f < 1) {
         mainRaf.current = requestAnimationFrame(mainStep);
       } else {
+        mainDoneRef.current = true;
         setCompletedDisplay(completed);
-        setMarkerPos(markerPos);
+        setMarkerPos(markerAtTarget);
 
         if (remaining.length > 1) {
-          const tailStep = (ts2: number) => {
-            if (tailStartRef.current == null) tailStartRef.current = ts2;
-            const elapsed2 = ts2 - tailStartRef.current;
-            const f2 =
-              tailDuration > 0 ? Math.min(elapsed2 / tailDuration, 1) : 1;
-            const dist2 = tailTotal * f2;
+          tailActiveRef.current = true;
+          tailStartRef.current = null;
+          tailPausedElapsedRef.current = 0;
+          tailRaf.current = requestAnimationFrame(tailStep);
+        } else {
+          tailActiveRef.current = false;
+          onFinish && onFinish();
+        }
+      }
+    };
 
-            const { polyline: tailPart } = partialPolylineByDistance(
-              remaining,
-              dist2
-            );
-            setTailDisplay(tailPart);
+    const tailStep = (ts2: number) => {
+      if (tailStartRef.current == null) tailStartRef.current = ts2 - tailPausedElapsedRef.current;
 
-            if (f2 < 1) {
-              tailRaf.current = requestAnimationFrame(tailStep);
-            } else {
-              setTailDisplay(remaining);
-              onFinish && onFinish();
-            }
-          };
+      const elapsed2 = ts2 - tailStartRef.current;
+
+      if (isZoomingRef.current) {
+        tailPausedElapsedRef.current = Math.min(elapsed2, tailDuration);
+        if (tailRaf.current) cancelAnimationFrame(tailRaf.current);
+        tailRaf.current = null;
+        return;
+      }
+
+      const f2 = tailDuration > 0 ? Math.min(elapsed2 / tailDuration, 1) : 1;
+      const dist2 = tailTotal * f2;
+
+      const { polyline: tailPart } = partialPolylineByDistance(remaining, dist2);
+      setTailDisplay(tailPart);
+
+      if (f2 < 1) {
+        tailRaf.current = requestAnimationFrame(tailStep);
+      } else {
+        tailActiveRef.current = false;
+        setTailDisplay(remaining);
+        onFinish && onFinish();
+      }
+      
+    };
+
+    // start / restart
+    mainStartRef.current = null;
+    tailStartRef.current = null;
+    if (mainRaf.current) cancelAnimationFrame(mainRaf.current);
+    if (tailRaf.current) cancelAnimationFrame(tailRaf.current);
+    mainRaf.current = requestAnimationFrame(mainStep);
+
+    // zoom handlers
+    const onZoomStart = () => {
+      isZoomingRef.current = true;
+    };
+
+    const onZoomEnd = () => {
+      isZoomingRef.current = false;
+
+      // resume whichever phase is active
+      if (!mainDoneRef.current) {
+        if (!mainRaf.current) {
+          mainStartRef.current = null; // let it recalc with paused elapsed
+          mainRaf.current = requestAnimationFrame(mainStep);
+        }
+      } else if (tailActiveRef.current) {
+        if (!tailRaf.current) {
           tailStartRef.current = null;
           tailRaf.current = requestAnimationFrame(tailStep);
         }
       }
     };
 
-    mainStartRef.current = null;
-    if (mainRaf.current) cancelAnimationFrame(mainRaf.current);
-    if (tailRaf.current) cancelAnimationFrame(tailRaf.current);
-    mainRaf.current = requestAnimationFrame(mainStep);
+    map.on("zoomstart", onZoomStart);
+    map.on("zoomend", onZoomEnd);
 
     return () => {
+      map.off("zoomstart", onZoomStart);
+      map.off("zoomend", onZoomEnd);
       if (mainRaf.current) cancelAnimationFrame(mainRaf.current);
       if (tailRaf.current) cancelAnimationFrame(tailRaf.current);
+      mainRaf.current = null;
+      tailRaf.current = null;
     };
-  }, [positions, totalDuration, targetFrac]);
+  }, [map, positions, totalDuration, targetFrac, remainingColor, color, weight]);
 
   return (
     <>
@@ -196,11 +266,7 @@ const AnimatedPolylineWithMarker: React.FC<AnimatedPolylineWithMarkerProps> = ({
         <Polyline positions={completedDisplay} color={color} weight={weight} />
       )}
       {tailDisplay.length > 1 && (
-        <Polyline
-          positions={tailDisplay}
-          color={remainingColor}
-          weight={weight}
-        />
+        <Polyline positions={tailDisplay} color={remainingColor} weight={weight} />
       )}
       {markerPos && (
         <Marker

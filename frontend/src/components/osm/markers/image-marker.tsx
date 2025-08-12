@@ -21,7 +21,7 @@ type ClusteredMarkersProps = {
 };
 
 const superclusterOptions: Supercluster.Options<Photo, ClusterProperties> = {
-  extent: 256,
+  extent: 1024,
   radius: 80,
   maxZoom: 12,
 };
@@ -31,7 +31,7 @@ export const ClusteredMarkersOSM = ({
   setNumClusters,
   setInfowindowData,
 }: ClusteredMarkersProps) => {
-  const { clusters, getLeaves } = useSupercluster(geojson, superclusterOptions);
+  const { clusters, getLeaves } = useSupercluster<Photo>(geojson, superclusterOptions);
 
   useEffect(() => {
     setNumClusters(clusters.length);
@@ -51,6 +51,7 @@ export const ClusteredMarkersOSM = ({
         Point,
         Photo
       >;
+      console.log("Clicked marker", feature);
       setInfowindowData({ position, features: [feature] });
     },
     [clusters, setInfowindowData]
@@ -103,6 +104,7 @@ const PhotoMarkerOSM = ({
   }, [photo]);
 
   const handleClick = useCallback(() => {
+    console.log(featureId, position);
     onMarkerClick && onMarkerClick(position, featureId);
   }, [onMarkerClick, position, featureId]);
 
@@ -110,15 +112,17 @@ const PhotoMarkerOSM = ({
     return L.divIcon({
       html: createPhotoPin(photo),
       className: "photo-marker-container",
+
       iconSize: [56, 56],
       iconAnchor: [28, 28],
       popupAnchor: [0, -28],
     });
   }, [photo]);
-
+  
   return (
     <Marker
       position={position}
+      key={photo.id}
       zIndexOffset={MapZIndexes.photo}
       icon={photoIcon}
       eventHandlers={{

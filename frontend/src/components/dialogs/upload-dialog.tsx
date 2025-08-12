@@ -29,12 +29,12 @@ import {
   Square,
   Settings,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { LoadingButton } from "../loading-button";
 import { UploadPhotosRequestItem } from "@/api/api";
-import { PhotoEditableMetadata } from "@common/types/photo";
-import { extractExifData } from "@common/utils/exif";
+import { PhotoEditableMetadata } from "vacation-gallery-common";
+import { extractExifData } from "vacation-gallery-common";
 import PhotoEditForm from "../photo-edit-form";
 import { useForm } from "react-hook-form";
 
@@ -59,57 +59,60 @@ interface UploadDialogProps {
 
 export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [processProgress, setProcessProgress] = useState(0);
+
   const [previewFiles, setPreviewFiles] = useState<UploadFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [showEditForm, setShowEditForm] = useState(false);
   const [useOriginalFiles, setUseOriginalFiles] = useState(false);
-
   const { mutateAsync: uploadPhotos, isPending } = useUploadPhotos();
 
   const initializeFiles = async (fileList: File[]) => {
-    const filesWithMetadata: UploadFile[] = await Promise.all(
-      fileList.map(async (originalFile, index) => {
-        const metadata = await extractExifData(originalFile);
-        // Resize image if it's a displayable image
-        let processedFile = originalFile;
-        let isResized = false;
+    for (const originalFile of fileList) {
+      const metadata = await extractExifData(originalFile);
+      // Resize image if it's a displayable image
+      let processedFile = originalFile;
+      let isResized = false;
 
-        if (isDisplayableImage(originalFile)) {
-          try {
-            processedFile = await resizeImage(originalFile, {
-              maxWidth: 2048,
-              maxHeight: 2048,
-              quality: 0.85,
-            });
-            isResized = processedFile.size < originalFile.size;
-          } catch (error) {
-            console.warn("Failed to resize image:", error);
-            processedFile = originalFile;
-          }
-        } else if (isRawImageFile(originalFile)) {
-          const convertedFile = await convertDngToJpeg(originalFile);
-          if (convertedFile) {
-            processedFile = convertedFile;
-            isResized = processedFile.size < originalFile.size;
-          }
+      if (isDisplayableImage(originalFile)) {
+        try {
+          processedFile = await resizeImage(originalFile, {
+            maxWidth: 2048,
+            maxHeight: 2048,
+            quality: 0.85,
+          });
+          isResized = processedFile.size < originalFile.size;
+        } catch (error) {
+          console.warn("Failed to resize image:", error);
+          processedFile = originalFile;
         }
+      } else if (isRawImageFile(originalFile)) {
+        const convertedFile = await convertDngToJpeg(originalFile);
+        if (convertedFile) {
+          processedFile = convertedFile;
+          isResized = processedFile.size < originalFile.size;
+        }
+      }
 
-        return {
+      setPreviewFiles((prev) => [
+        ...prev,
+        {
           file: processedFile,
           originalFile,
-          id: `file-${index}-${Date.now()}`,
+          id: `file-${prev.length}-${Date.now()}`,
           metadata: metadata,
           isRaw: isRawImageFile(originalFile),
           isResized,
           originalSize: originalFile.size,
-        } satisfies UploadFile;
-      })
-    );
-    setPreviewFiles(filesWithMetadata);
+        } satisfies UploadFile,
+      ]);
+    }
   };
 
   useEffect(() => {
     if (files) {
+      setPreviewFiles([]);
+      setSelectedFiles(new Set());
       initializeFiles(files);
     }
   }, [files]);
@@ -145,7 +148,7 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
               ...fileWithMeta.metadata,
               fileName: fileWithMeta.file.name,
             },
-          }) satisfies UploadPhotosRequestItem
+          } satisfies UploadPhotosRequestItem)
       );
 
       await uploadPhotos({
@@ -153,14 +156,19 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
           tripId: tripId,
           files: filesToUpload,
         },
-        onProgress: setUploadProgress,
+        progress: {
+          onUploadProgress: setUploadProgress,
+          onProcessProgress: setProcessProgress,
+        },
       });
 
       toast.success(`Successfully uploaded ${previewFiles.length} photo(s)!`);
       onClose();
     } catch (error) {
       toast.error(
-        `Failed to upload photos: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to upload photos: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   };
@@ -288,6 +296,12 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
     }
   }, [showEditForm]);
 
+  // Upload progress weighs 25%
+  // Processing progress weighs 75%
+  const uploadProgressPercentage = useMemo(() => {
+    return Math.round((uploadProgress * 0.25 + processProgress * 0.75) * 100);
+  }, [uploadProgress, processProgress]);
+
   return (
     <>
       <Dialog open={files != null} onOpenChange={onClose}>
@@ -392,10 +406,14 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
             {isPending && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress}%</span>
+                  <span>
+                    {uploadProgressPercentage < 1
+                      ? "Uploading..."
+                      : "Processing..."}
+                  </span>
+                  <span>{uploadProgressPercentage}%</span>
                 </div>
-                <Progress value={uploadProgress} />
+                <Progress value={uploadProgressPercentage} />
               </div>
             )}
 
@@ -409,8 +427,8 @@ export function UploadDialog({ files, tripId, onClose }: UploadDialogProps) {
                         selectedFiles.has(file.id)
                           ? "border-blue-500"
                           : file.metadata.latitude && file.metadata.longitude
-                            ? "border-green-300"
-                            : "border-orange-300"
+                          ? "border-green-300"
+                          : "border-orange-300"
                       }`}
                     >
                       {/* Selection checkbox */}

@@ -1,4 +1,4 @@
-import { PhotoType } from "@common/types/photo";
+import { PhotoType } from "vacation-gallery-common";
 import { Photo } from "./photo-sorting";
 
 export function findCommonDenominatorAndBroader(items: Photo[]): string[] {

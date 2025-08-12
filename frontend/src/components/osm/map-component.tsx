@@ -8,28 +8,24 @@ import { Button } from "../ui/button";
 import { useTripPhotos, useTripRoutes } from "@/hooks/useVacationGalleryApi";
 import L, { LatLngExpression, Map } from "leaflet";
 import { OpenStreetMap } from "../openstreetmap";
-import { Route } from "@common/types/route";
+import { Route } from "vacation-gallery-common";
 import { Photo } from "@/lib/photo-sorting";
 import StopSheet from "./stop-sheet";
+import { useMap } from "react-leaflet";
 
 interface MapComponentProps {
   onClickPhoto?: (photo: Photo) => void;
   tripId: string;
-  animate?: boolean;
 }
 
-export default function MapComponent({
-  onClickPhoto,
-  tripId,
-  animate = true,
-}: MapComponentProps) {
+function MapComponentInner({ onClickPhoto, tripId }: MapComponentProps) {
   const [showStops, setShowStops] = useState(false);
   const { data: photos } = useTripPhotos(tripId);
   const { data: routes } = useTripRoutes(tripId);
   const route = useMemo(() => {
     return routes?.at(0);
   }, [routes]);
-  const mapref = useRef<Map>(null);
+  const map = useMap();
 
   const photosGeoJson = useMemo((): FeatureCollection<Point, Photo> => {
     return {
@@ -41,6 +37,7 @@ export default function MapComponent({
           .map((p) => {
             return {
               properties: p,
+              id: p.id,
               type: "Feature",
               geometry: {
                 type: "Point",
@@ -59,7 +56,7 @@ export default function MapComponent({
   } | null>(null);
 
   const fitToRoute = (route: Route) => {
-    if (!mapref.current) return;
+    if (!map) return;
     const validStops =
       route?.stops.filter(
         (stop) => stop.latitude !== 0 && stop.longitude !== 0
@@ -69,19 +66,16 @@ export default function MapComponent({
       const bounds = L.latLngBounds(
         validStops.map((stop) => [stop.latitude, stop.longitude])
       );
-      mapref.current.fitBounds(bounds, { padding: [15, 15] });
+      map.fitBounds(bounds, { padding: [15, 15] });
     } else if (validStops.length === 1) {
-      mapref.current.setView(
-        [validStops[0].latitude, validStops[0].longitude],
-        15
-      );
+      map.setView([validStops[0].latitude, validStops[0].longitude], 15);
     }
   };
 
   // Initialize map center and zoom based on existing stops
   useEffect(() => {
     route && fitToRoute(route);
-  }, [route, mapref.current]);
+  }, [route, map]);
 
   return (
     <div className="w-full h-full relative">
@@ -90,8 +84,7 @@ export default function MapComponent({
         photos={photos}
         open={showStops}
         onClickStop={(s) => {
-          console.log("Clicked stop", s);
-          mapref.current?.flyTo(
+          map?.flyTo(
             {
               lat: s.latitude,
               lng: s.longitude,
@@ -103,31 +96,8 @@ export default function MapComponent({
         }}
         onClose={() => setShowStops(false)}
       />
-      <OpenStreetMap
-        className="h-full w-full z-0"
-        zoomControl={false}
-        ref={(r) => {
-          mapref.current = r;
-        }}
-      >
-        {route && photos && <MapTrip photos={photos} route={route} />}
-
-        <ClusteredMarkersOSM
-          geojson={photosGeoJson}
-          setInfowindowData={setInfowindowData}
-          setNumClusters={() => {}}
-        />
-        {infowindowData && (
-          <ImagePopupContent
-            position={infowindowData.position}
-            items={infowindowData.features}
-            onClose={() => setInfowindowData(null)}
-            onClickPhoto={onClickPhoto}
-            isOpen={true}
-          />
-        )}
-      </OpenStreetMap>
-      <div className="absolute right-2 top-2 flex-col flex gap-2">
+      {route && photos && <MapTrip photos={photos} route={route} />}
+      <div className="absolute right-2 top-2 flex-col flex gap-2 z-999">
         <Button
           size={"icon"}
           variant={"secondary"}
@@ -147,6 +117,28 @@ export default function MapComponent({
           </Button>
         )}
       </div>
+      <ClusteredMarkersOSM
+        geojson={photosGeoJson}
+        setInfowindowData={setInfowindowData}
+        setNumClusters={() => {}}
+      />
+      {infowindowData && (
+        <ImagePopupContent
+          position={infowindowData.position}
+          items={infowindowData.features}
+          onClose={() => setInfowindowData(null)}
+          onClickPhoto={onClickPhoto}
+          isOpen={true}
+        />
+      )}
     </div>
+  );
+}
+
+export default function MapComponent(props: MapComponentProps) {
+  return (
+    <OpenStreetMap className="h-full w-full z-0" zoomControl={false}>
+      <MapComponentInner {...props} />
+    </OpenStreetMap>
   );
 }

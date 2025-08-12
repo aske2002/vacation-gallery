@@ -18,30 +18,30 @@ export interface RouteRequest {
   extra_info?: string[];
 }
 
-export interface RouteResponse {
-  routes: Route[];
+export interface ORSRouteResponse {
+  routes: ORSRoute[];
   bbox?: number[];
   metadata?: any;
 }
 
-export interface Route {
+export interface ORSRoute {
   summary: {
     distance: number; // in meters
     duration: number; // in seconds
   };
   geometry?: any; // GeoJSON LineString or encoded polyline
-  segments?: RouteSegment[];
+  segments?: ORSRouteSegment[];
   bbox?: number[];
   way_points?: number[];
 }
 
-export interface RouteSegment {
+export interface ORSRouteSegment {
   distance: number;
   duration: number;
-  steps?: RouteStep[];
+  steps?: ORSRouteStep[];
 }
 
-export interface RouteStep {
+export interface ORSRouteStep {
   distance: number;
   duration: number;
   type: number;
@@ -50,7 +50,7 @@ export interface RouteStep {
   way_points?: number[];
 }
 
-export interface DirectionsRequest {
+export interface ORSDirectionsRequest {
   start: Coordinate;
   end: Coordinate;
   profile?: RouteRequest['profile'];

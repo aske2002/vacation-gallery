@@ -24,12 +24,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@common/*": ["../common/src/*"]
+      "@common/*": ["vacation-gallery-common"]
     }
   },
   "include": ["src", "../common/src"],
   "references": [
     { "path": "./tsconfig.node.json" },
-    { "path": "../common/tsconfig.json" }
   ]
 }

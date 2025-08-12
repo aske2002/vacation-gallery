@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useQuery } from "@tanstack/react-query";
 import { Command, CommandGroup, CommandItem, CommandList } from "./ui/command";
-import { LatLng, NominatimResult } from "@common/types/nominatim";
+import { LatLng, NominatimResult } from "vacation-gallery-common";
 import { cn } from "@/lib/utils";
 import { DefaultLoader } from "./default-loader";
 
